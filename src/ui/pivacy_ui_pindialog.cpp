@@ -75,23 +75,23 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 	dc.SetBrush(IRMA_DARK_BLUE);
 	
 	wxCoord row = 80;
-	wxCoord col[3] = { 5, 45, 85 };
+	wxCoord col[3] = { 0, 60 - 18, 120 - 36 };
 	
 	for (int i = 0; i < 12; i++)
 	{
-		if ((i != 0) && ((i % 3) == 0)) row += 28;
+		if ((i != 0) && ((i % 3) == 0)) row += 36;
 		
 		if (i < 9)
 		{
-			dc.DrawRoundedRectangle(175 + col[i % 3], row, 30, 22, 5);
+			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
 			
 			wxString digit;
 			digit.Printf(_("%d"), i + 1	);
-			dc.DrawText(digit, 175 + col[i % 3] + 11, row + 2);
+			dc.DrawText(digit, 175 + col[i % 3] + 14, row + 6);
 			
 			if (!areas_set)
 			{
-				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 30, 22, digit));
+				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 36, 30, digit));
 			}
 		}
 		else if (i == 9)
@@ -100,12 +100,12 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 			dc.SetPen(wxPen(IRMA_SIGNAL_RED));
 			dc.SetBrush(IRMA_SIGNAL_RED);
 			
-			dc.DrawRoundedRectangle(175 + col[i % 3], row, 30, 22, 5);
-			dc.DrawText(_("X"), 175 + col[i % 3] + 10, row + 2);
+			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
+			dc.DrawText(_("CLR"), 175 + col[i % 3] + 2, row + 6);
 			
 			if (!areas_set)
 			{
-				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 30, 22, _("CLR")));
+				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 36, 30, _("CLR")));
 			}
 		}
 		else if (i == 10)
@@ -114,12 +114,12 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 			dc.SetPen(wxPen(IRMA_DARK_BLUE));
 			dc.SetBrush(IRMA_DARK_BLUE);
 			
-			dc.DrawRoundedRectangle(175 + col[i % 3], row, 30, 22, 5);
-			dc.DrawText(_("0"), 175 + col[i % 3] + 11, row + 2);
+			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
+			dc.DrawText(_("0"), 175 + col[i % 3] + 14, row + 6);
 			
 			if (!areas_set)
 			{
-				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 30, 22, _("0")));
+				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 36, 30, _("0")));
 			}
 		}
 		else if (i == 11)
@@ -128,12 +128,12 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 			dc.SetPen(wxPen(IRMA_SIGNAL_GREEN));
 			dc.SetBrush(IRMA_SIGNAL_GREEN);
 			
-			dc.DrawRoundedRectangle(175 + col[i % 3], row, 30, 22, 5);
-			dc.DrawText(_("OK"), 175 + col[i % 3] + 2, row + 2);
+			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
+			dc.DrawText(_("OK"), 175 + col[i % 3] + 6, row + 6);
 			
 			if (!areas_set)
 			{
-				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 30, 22, _("OK")));
+				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 36, 30, _("OK")));
 			}
 		}
 	}

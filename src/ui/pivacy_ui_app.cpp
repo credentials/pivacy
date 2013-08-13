@@ -29,12 +29,13 @@
 
  The Pivacy UI main entry point
  *****************************************************************************/
- 
+
+#include "config.h"
 #include "pivacy_ui_app.h"
 #include "pivacy_ui_canvas.h"
 #include "pivacy_ui_pindialog.h"
 
-pivacy_ui_pin_dialog pin_dialog;
+pivacy_ui_pin_dialog* pin_dialog;
 
 IMPLEMENT_APP(pivacy_ui_app)
 
@@ -42,11 +43,13 @@ bool pivacy_ui_app::OnInit()
 {
 	::wxInitAllImageHandlers();
 	
-	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(320, 200));
+	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(PIVACY_SCREENWIDTH, PIVACY_SCREENHEIGHT));
 	canvas->Show(true);
 	SetTopWindow(canvas);
 	
-	canvas->set_ux_handler(&pin_dialog);
+	pin_dialog = new pivacy_ui_pin_dialog();
+	
+	canvas->set_ux_handler(pin_dialog);
 
 	canvas->to_fullscreen();
 	

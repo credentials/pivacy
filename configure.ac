@@ -49,6 +49,20 @@ AC_ARG_WITH(
 	[PIVACY_LOGLEVEL=3]
 )
 
+# Screen width
+AC_ARG_WITH(
+	[screenwidth],
+	[AS_HELP_STRING([--with-screenwidth=INT],[The screen width (default INT=320)])],
+	[PIVACY_SCREENWIDTH="$withval"],
+	[PIVACY_SCREENWIDTH=320])
+
+# Screen height
+AC_ARG_WITH(
+	[screenheight],
+	[AS_HELP_STRING([--with-screenheight=INT],[The screen height (default INT=240)])],
+	[PIVACY_SCREENHEIGHT="$withval"],
+	[PIVACY_SCREENHEIGHT=240])
+
 ################################################################################
 # Optional components
 ################################################################################
@@ -100,6 +114,16 @@ AC_DEFINE_UNQUOTED(
 	[PIVACY_LOGLEVEL],
 	[$PIVACY_LOGLEVEL],
 	[The log level set by the user]
+)
+AC_DEFINE_UNQUOTED(
+	[PIVACY_SCREENWIDTH],
+	[$PIVACY_SCREENWIDTH],
+	[The screen width]
+)
+AC_DEFINE_UNQUOTED(
+	[PIVACY_SCREENHEIGHT],
+	[$PIVACY_SCREENHEIGHT],
+	[The screen height]
 )
 AC_DEFINE_UNQUOTED(
 	[DEFAULT_PIVACY_CONF],
