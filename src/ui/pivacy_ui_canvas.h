@@ -192,7 +192,7 @@ public:
 	 * Constructor
 	 * @param run_in_window should the application run in a window (defaults to false)
 	 */
-	pivacy_ui_canvas(const wxSize& size, bool run_in_window = false);
+	pivacy_ui_canvas(const wxSize& size);
 	
 	/**
 	 * Destructor
@@ -222,6 +222,11 @@ public:
 	 * @param ux_handler the UX handler
 	 */
 	void set_ux_handler(pivacy_ui_ux_base* ux_handler);
+
+	/**
+	 * Switch to full screen mode
+	 */
+	void to_fullscreen();
 	
 	DECLARE_EVENT_TABLE()
 

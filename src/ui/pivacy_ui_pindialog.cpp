@@ -170,7 +170,7 @@ bool pivacy_ui_pin_dialog::on_mouse(wxMouseEvent& event)
 				}
 				else
 				{
-					if (pin_code.size() <= 8)
+					if (pin_code.size() < 8)
 					{
 						pin_code += i->get_value().char_str();
 					}

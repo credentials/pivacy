@@ -42,11 +42,13 @@ bool pivacy_ui_app::OnInit()
 {
 	::wxInitAllImageHandlers();
 	
-	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(320, 200), true);
+	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(320, 200));
 	canvas->Show(true);
 	SetTopWindow(canvas);
 	
 	canvas->set_ux_handler(&pin_dialog);
+
+	canvas->to_fullscreen();
 	
 	return true;
 }

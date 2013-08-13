@@ -199,7 +199,7 @@ END_EVENT_TABLE()
 // Canvas class implementation
 ////////////////////////////////////////////////////////////////////////
 
-pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size, bool run_in_window /* = false */) :
+pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size) :
 	wxFrame(NULL, -1, _("Pivacy"), wxDefaultPosition, size)
 {
 	wxMenu* file_menu = new wxMenu();
@@ -212,11 +212,6 @@ pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size, bool run_in_window /* = f
 	
 	SetMenuBar(menu);
 	
-	if (!run_in_window)
-	{
-		ShowFullScreen(true);
-	}
-	
 	// Construct the UI panel on which all the interaction will take place
 	ui_panel = new pivacy_ui_canvas_panel(this, size);
 	
@@ -228,8 +223,6 @@ pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size, bool run_in_window /* = f
 	SetSizerAndFit(sizer);
 	
 	ui_panel->set_ux_handler(&blank_ux_handler);
-	
-	ShowFullScreen(true);
 }
 
 pivacy_ui_canvas::~pivacy_ui_canvas()
@@ -269,4 +262,9 @@ void pivacy_ui_canvas::set_ux_handler(pivacy_ui_ux_base* ux_handler)
 	{
 		ui_panel->set_ux_handler(ux_handler);
 	}
+}
+
+void pivacy_ui_canvas::to_fullscreen()
+{
+	ShowFullScreen(true);
 }
