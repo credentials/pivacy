@@ -34,6 +34,7 @@
 #include "pivacy_ui_canvas.h"
 #include "pivacy_ui_colours.h"
 #include <wx/mstream.h>
+#include <wx/dcbuffer.h>
 
 ////////////////////////////////////////////////////////////////////////
 // Include images
@@ -80,6 +81,7 @@ bool pivacy_ui_area::in_area(wxCoord x, wxCoord y)
 
 pivacy_ui_ux_blank::pivacy_ui_ux_blank()
 {
+	status = _("Starting up...");
 }
 
 void pivacy_ui_ux_blank::render(wxGCDC& dc)
@@ -91,11 +93,16 @@ void pivacy_ui_ux_blank::render(wxGCDC& dc)
 	wxString version_info;
 	version_info.Printf(_("Pivacy version %s"), _(VERSION));
 	dc.DrawText(version_info, 50, 50);
-	dc.DrawText(_("INITIALIZING..."), 50, 82);
+	dc.DrawText(status, 50, 82);
 }
 
 bool pivacy_ui_ux_blank::on_mouse(wxMouseEvent& event)
 {
+}
+
+void pivacy_ui_ux_blank::set_status(const wxString& status)
+{
+	this->status = status;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -124,7 +131,7 @@ pivacy_ui_canvas_panel::pivacy_ui_canvas_panel(wxWindow* parent, const wxSize& s
 	
 void pivacy_ui_canvas_panel::on_paint(wxPaintEvent& event)
 {
-	wxGCDC dc(wxPaintDC(this));
+	wxGCDC dc(wxBufferedPaintDC(this));
 	render(dc);
 }
 
@@ -141,7 +148,10 @@ void pivacy_ui_canvas_panel::on_mouse(wxMouseEvent& event)
 	
 void pivacy_ui_canvas_panel::repaint()
 {
-	wxGCDC dc(wxClientDC(this));
+	wxClientDC cdc(this);
+	wxBufferedDC bdc(&cdc);
+	wxGCDC dc(bdc);
+	
 	render(dc);
 }
 	
@@ -267,4 +277,9 @@ void pivacy_ui_canvas::set_ux_handler(pivacy_ui_ux_base* ux_handler)
 void pivacy_ui_canvas::to_fullscreen()
 {
 	ShowFullScreen(true);
+}
+
+void pivacy_ui_canvas::set_status(const wxString& status)
+{
+	blank_ux_handler.set_status(status);
 }

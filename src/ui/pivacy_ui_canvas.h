@@ -123,6 +123,15 @@ public:
 	 * @return true if the parent window should be repainted
 	 */
 	virtual bool on_mouse(wxMouseEvent& event);
+	
+	/**
+	 * Set the status string
+	 * @param status the current system status
+	 */
+	void set_status(const wxString& status);
+
+private:
+	wxString status;
 };
 
 /**
@@ -227,6 +236,11 @@ public:
 	 * Switch to full screen mode
 	 */
 	void to_fullscreen();
+	
+	/**
+	 * Set the system status (displayed on the blank UX panel)
+	 */
+	void set_status(const wxString& status);
 	
 	DECLARE_EVENT_TABLE()
 

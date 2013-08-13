@@ -53,5 +53,7 @@ bool pivacy_ui_app::OnInit()
 
 	canvas->to_fullscreen();
 	
+	canvas->set_status(_("Waiting for IRMA system..."));
+	
 	return true;
 }
