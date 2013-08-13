@@ -44,6 +44,37 @@
 #include "irma_logo_125.inc"
 
 ////////////////////////////////////////////////////////////////////////
+// Area class
+////////////////////////////////////////////////////////////////////////
+
+pivacy_ui_area::pivacy_ui_area(wxCoord left_top_x, wxCoord left_top_y, wxCoord w, wxCoord h, wxString value)
+{
+	this->left_top_x = left_top_x;
+	this->left_top_y = left_top_y;
+	this->w = w;
+	this->h = h;
+	this->value = value;
+}
+
+wxString pivacy_ui_area::get_value()
+{
+	return value;
+}
+	
+bool pivacy_ui_area::in_area(wxCoord x, wxCoord y)
+{
+	if ((x >= left_top_x) && (x < (left_top_x + w)) &&
+	    (y >= left_top_y) && (y < (left_top_y + h)))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 // Blank UX handler
 ////////////////////////////////////////////////////////////////////////
 
@@ -65,16 +96,6 @@ void pivacy_ui_ux_blank::render(wxGCDC& dc)
 
 bool pivacy_ui_ux_blank::on_mouse(wxMouseEvent& event)
 {
-	if (event.RightDown())
-	{
-		::wxPrintf(_("Right mouse button at "));
-	}
-	else if (event.LeftDown())
-	{
-		::wxPrintf(_("Left mouse button at "));
-	}
-	
-	::wxPrintf(_("(%d,%d)\n"), event.GetX(), event.GetY());
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -207,6 +228,8 @@ pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size, bool run_in_window /* = f
 	SetSizerAndFit(sizer);
 	
 	ui_panel->set_ux_handler(&blank_ux_handler);
+	
+	ShowFullScreen(true);
 }
 
 pivacy_ui_canvas::~pivacy_ui_canvas()
@@ -233,4 +256,17 @@ void pivacy_ui_canvas::on_paint(wxPaintEvent& event)
 	wxCoord w, h;
 	dc.GetSize(&w, &h);
 	dc.DrawRectangle(0, 0, w, h);
+}
+
+void pivacy_ui_canvas::set_ux_handler(pivacy_ui_ux_base* ux_handler)
+{
+	if (ux_handler == NULL)
+	{
+		// Show defined behaviour
+		ui_panel->set_ux_handler(&blank_ux_handler);
+	}
+	else
+	{
+		ui_panel->set_ux_handler(ux_handler);
+	}
 }

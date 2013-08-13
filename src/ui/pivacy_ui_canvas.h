@@ -40,6 +40,45 @@
 #endif // WX_PRECOMP
 
 /**
+ * Screen area class
+ */
+ 
+class pivacy_ui_area
+{
+public:
+	/**
+	 * Constructor
+	 * @param left_top_x x position of left-hand top corner
+	 * @param left_top_y y position of left-hand top corner
+	 * @param w width
+	 * @param h height
+	 * @param value value associated with this area
+	 */
+	pivacy_ui_area(wxCoord left_top_x, wxCoord left_top_y, wxCoord w, wxCoord h, wxString value);
+	
+	/**
+	 * Get the value
+	 * @return the value associated with the area
+	 */
+	wxString get_value();
+	
+	/**
+	 * Is the given point in the area?
+	 * @param x the x position of the point to test
+	 * @param y the y position of the point to test
+	 * @return true if (x,y) is in the area, false otherwise
+	 */
+	bool in_area(wxCoord x, wxCoord y);
+	
+private:
+	wxCoord left_top_x;
+	wxCoord left_top_y;
+	wxCoord w;
+	wxCoord h;
+	wxString value;
+};
+
+/**
  * UI interaction base class
  */
  
@@ -177,6 +216,12 @@ public:
 	 * @param event paint event
 	 */
 	void on_paint(wxPaintEvent& event);
+	
+	/**
+	 * Set the UX handler
+	 * @param ux_handler the UX handler
+	 */
+	void set_ux_handler(pivacy_ui_ux_base* ux_handler);
 	
 	DECLARE_EVENT_TABLE()
 

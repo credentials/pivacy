@@ -25,28 +25,49 @@
  */
 
 /*****************************************************************************
- pivacy_ui_main.cpp
+ pivacy_ui_pindialog.h
 
- The Pivacy UI main entry point
+ The Pivacy UI PIN entry dialog
  *****************************************************************************/
  
-#include "pivacy_ui_app.h"
+#ifndef _PIVACY_UI_PINDIALOG_H
+#define _PIVACY_UI_PINDIALOG_H
+ 
+#ifdef WX_PRECOMP
+#include "wx/wxprec.h"
+#else
+#include "wx/wx.h" 
+#endif // WX_PRECOMP
+
 #include "pivacy_ui_canvas.h"
-#include "pivacy_ui_pindialog.h"
+#include <string>
+#include <list>
 
-pivacy_ui_pin_dialog pin_dialog;
-
-IMPLEMENT_APP(pivacy_ui_app)
-
-bool pivacy_ui_app::OnInit()
+class pivacy_ui_pin_dialog : public pivacy_ui_ux_base
 {
-	::wxInitAllImageHandlers();
+public:
+	/**
+	 * Constructor
+	 */
+	pivacy_ui_pin_dialog();
 	
-	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(320, 200), true);
-	canvas->Show(true);
-	SetTopWindow(canvas);
-	
-	canvas->set_ux_handler(&pin_dialog);
-	
-	return true;
-}
+	/**
+	 * Paint the user interface elements
+	 * @param dc the device context to render on
+	 */
+	virtual void render(wxGCDC& dc);
+
+	/**
+	 * Handle mouse events
+	 * @param event the mouse event
+	 * @return true if the parent window should be repainted
+	 */
+	virtual bool on_mouse(wxMouseEvent& event);
+
+private:
+	std::string pin_code;
+	bool areas_set;
+	std::list<pivacy_ui_area> areas;
+};
+
+#endif // !_PIVACY_UI_PINDIALOG_H
