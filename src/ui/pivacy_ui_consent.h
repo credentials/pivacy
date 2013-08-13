@@ -25,43 +25,52 @@
  */
 
 /*****************************************************************************
- pivacy_ui_main.cpp
+ pivacy_ui_consent.h
 
- The Pivacy UI main entry point
+ The Pivacy UI consent dialog
  *****************************************************************************/
+ 
+#ifndef _PIVACY_UI_CONSENT_H
+#define _PIVACY_UI_CONSENT_H
+ 
+#ifdef WX_PRECOMP
+#include "wx/wxprec.h"
+#else
+#include "wx/wx.h" 
+#endif // WX_PRECOMP
 
-#include "config.h"
-#include "pivacy_ui_app.h"
 #include "pivacy_ui_canvas.h"
-#include "pivacy_ui_pindialog.h"
-#include "pivacy_ui_consent.h"
+#include <string>
+#include <list>
 
-pivacy_ui_pin_dialog* pin_dialog;
-pivacy_ui_consent_dialog* consent_dialog;
-
-IMPLEMENT_APP(pivacy_ui_app)
-
-bool pivacy_ui_app::OnInit()
+class pivacy_ui_consent_dialog : public pivacy_ui_ux_base
 {
-	::wxInitAllImageHandlers();
+public:
+	/**
+	 * Constructor
+	 * @param rp the name of the relying party
+	 * @param attr a list of the attributes requested by the RP
+	 */
+	pivacy_ui_consent_dialog(wxString rp, std::list<wxString> attr);
 	
-	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(PIVACY_SCREENWIDTH, PIVACY_SCREENHEIGHT));
-	canvas->Show(true);
-	SetTopWindow(canvas);
-	
-	pin_dialog = new pivacy_ui_pin_dialog();
+	/**
+	 * Paint the user interface elements
+	 * @param dc the device context to render on
+	 */
+	virtual void render(wxGCDC& dc);
 
+	/**
+	 * Handle mouse events
+	 * @param event the mouse event
+	 * @return true if the parent window should be repainted
+	 */
+	virtual bool on_mouse(wxMouseEvent& event);
+
+private:
+	wxString rp;
 	std::list<wxString> attr;
-	attr.push_back(_("Over 18"));
-	attr.push_back(_("Over 21"));
-	consent_dialog = new pivacy_ui_consent_dialog(_("Albron Catering"), attr);
-	
-	//canvas->set_ux_handler(pin_dialog);
-	canvas->set_ux_handler(consent_dialog);
+	bool areas_set;
+	std::list<pivacy_ui_area> areas;
+};
 
-	canvas->to_fullscreen();
-	
-	canvas->set_status(_("Waiting for IRMA system..."));
-	
-	return true;
-}
+#endif // !_PIVACY_UI_CONSENT_H

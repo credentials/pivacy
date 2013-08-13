@@ -37,6 +37,7 @@
 pivacy_ui_pin_dialog::pivacy_ui_pin_dialog()
 {
 	areas_set = false;
+	pressed = _("none");
 }
 
 void pivacy_ui_pin_dialog::render(wxGCDC& dc)
@@ -83,12 +84,28 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 		
 		if (i < 9)
 		{
-			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
-			
 			wxString digit;
 			digit.Printf(_("%d"), i + 1	);
+			
+			if (pressed == digit)
+			{
+				dc.SetPen(wxPen(IRMA_DARK_BLUE, 2));
+				dc.SetBrush(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_WHITE);
+				dc.SetTextForeground(IRMA_DARK_BLUE);
+			}
+
+			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
 			dc.DrawText(digit, 175 + col[i % 3] + 14, row + 6);
 			
+			if (pressed == digit)
+			{
+				dc.SetPen(wxPen(IRMA_DARK_BLUE));
+				dc.SetBrush(IRMA_DARK_BLUE);
+				dc.SetTextForeground(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_DARK_BLUE);
+			}
+
 			if (!areas_set)
 			{
 				areas.push_back(pivacy_ui_area(175 + col[i % 3], row, 36, 30, digit));
@@ -96,9 +113,20 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 		}
 		else if (i == 9)
 		{
-			dc.SetTextBackground(IRMA_SIGNAL_RED);
-			dc.SetPen(wxPen(IRMA_SIGNAL_RED));
-			dc.SetBrush(IRMA_SIGNAL_RED);
+			if (pressed == _("CLR"))
+			{
+				dc.SetPen(wxPen(IRMA_SIGNAL_RED, 2));
+				dc.SetBrush(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_WHITE);
+				dc.SetTextForeground(IRMA_SIGNAL_RED);
+			}
+			else
+			{
+				dc.SetTextForeground(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_SIGNAL_RED);
+				dc.SetPen(wxPen(IRMA_SIGNAL_RED));
+				dc.SetBrush(IRMA_SIGNAL_RED);
+			}
 			
 			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
 			dc.DrawText(_("CLR"), 175 + col[i % 3] + 2, row + 6);
@@ -110,9 +138,20 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 		}
 		else if (i == 10)
 		{
-			dc.SetTextBackground(IRMA_DARK_BLUE);
-			dc.SetPen(wxPen(IRMA_DARK_BLUE));
-			dc.SetBrush(IRMA_DARK_BLUE);
+			if (pressed == _("0"))
+			{
+				dc.SetPen(wxPen(IRMA_DARK_BLUE, 2));
+				dc.SetBrush(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_WHITE);
+				dc.SetTextForeground(IRMA_DARK_BLUE);
+			}
+			else
+			{
+				dc.SetPen(wxPen(IRMA_DARK_BLUE));
+				dc.SetBrush(IRMA_DARK_BLUE);
+				dc.SetTextForeground(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_DARK_BLUE);
+			}
 			
 			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
 			dc.DrawText(_("0"), 175 + col[i % 3] + 14, row + 6);
@@ -124,9 +163,20 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 		}
 		else if (i == 11)
 		{
-			dc.SetTextBackground(IRMA_SIGNAL_GREEN);
-			dc.SetPen(wxPen(IRMA_SIGNAL_GREEN));
-			dc.SetBrush(IRMA_SIGNAL_GREEN);
+			if (pressed == _("OK"))
+			{
+				dc.SetPen(wxPen(IRMA_SIGNAL_GREEN, 2));
+				dc.SetBrush(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_WHITE);
+				dc.SetTextForeground(IRMA_SIGNAL_GREEN);
+			}
+			else
+			{
+				dc.SetTextForeground(IRMA_WHITE);
+				dc.SetTextBackground(IRMA_SIGNAL_GREEN);
+				dc.SetPen(wxPen(IRMA_SIGNAL_GREEN));
+				dc.SetBrush(IRMA_SIGNAL_GREEN);
+			}
 			
 			dc.DrawRoundedRectangle(175 + col[i % 3], row, 36, 30, 5);
 			dc.DrawText(_("OK"), 175 + col[i % 3] + 6, row + 6);
@@ -156,31 +206,27 @@ bool pivacy_ui_pin_dialog::on_mouse(wxMouseEvent& event)
 		{
 			if (i->in_area(event.GetX(), event.GetY()))
 			{
-				if (i->get_value() == _("OK"))
+				if (i->get_value() == _("CLR")	)
 				{
-					printf("User pressed OK\n");
-				}
-				else if (i->get_value() == _("CLR")	)
-				{
-					printf("User pressed CLR\n");
-					
 					pin_code.clear();
-					
-					rv = true;
 				}
-				else
+				else if (i->get_value() != _("OK"))
 				{
 					if (pin_code.size() < 8)
 					{
 						pin_code += i->get_value().char_str();
 					}
-					
-					rv = true;
-					
-					printf("The current PIN is %s\n", pin_code.c_str());
 				}
+
+				pressed = i->get_value();
+				rv = true;
 			}
 		}
+	}
+	else if (event.LeftUp())
+	{
+		pressed = _("none");
+		rv = true;
 	}
 	
 	return rv;

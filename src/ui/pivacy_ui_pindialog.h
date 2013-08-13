@@ -68,6 +68,7 @@ private:
 	std::string pin_code;
 	bool areas_set;
 	std::list<pivacy_ui_area> areas;
+	wxString pressed;
 };
 
 #endif // !_PIVACY_UI_PINDIALOG_H

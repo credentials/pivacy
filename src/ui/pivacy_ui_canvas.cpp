@@ -111,8 +111,7 @@ void pivacy_ui_ux_blank::set_status(const wxString& status)
 
 BEGIN_EVENT_TABLE(pivacy_ui_canvas_panel, wxPanel)
     EVT_PAINT(pivacy_ui_canvas_panel::on_paint)
-    EVT_LEFT_DOWN(pivacy_ui_canvas_panel::on_mouse)
-    EVT_RIGHT_DOWN(pivacy_ui_canvas_panel::on_mouse)
+    EVT_MOUSE_EVENTS(pivacy_ui_canvas_panel::on_mouse)
 END_EVENT_TABLE()
 
 ////////////////////////////////////////////////////////////////////////
