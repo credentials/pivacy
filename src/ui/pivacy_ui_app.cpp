@@ -56,8 +56,8 @@ bool pivacy_ui_app::OnInit()
 	attr.push_back(_("Over 21"));
 	consent_dialog = new pivacy_ui_consent_dialog(_("Albron Catering"), attr);
 	
-	//canvas->set_ux_handler(pin_dialog);
-	canvas->set_ux_handler(consent_dialog);
+	canvas->set_ux_handler(pin_dialog);
+	//canvas->set_ux_handler(consent_dialog);
 
 	canvas->to_fullscreen();
 	

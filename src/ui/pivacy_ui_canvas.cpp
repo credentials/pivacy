@@ -130,7 +130,7 @@ pivacy_ui_canvas_panel::pivacy_ui_canvas_panel(wxWindow* parent, const wxSize& s
 	
 void pivacy_ui_canvas_panel::on_paint(wxPaintEvent& event)
 {
-	wxGCDC dc(wxBufferedPaintDC(this));
+	wxGCDC dc(wxPaintDC(this));
 	render(dc);
 }
 
