@@ -53,16 +53,18 @@ bool pivacy_ui_app::OnInit()
 	
 	pin_dialog = new pivacy_ui_pin_dialog();
 
+	consent_dialog = new pivacy_ui_consent_dialog();
 	std::list<wxString> attr;
 	attr.push_back(_("Over 18"));
 	attr.push_back(_("Over 21"));
-	consent_dialog = new pivacy_ui_consent_dialog(_("Albron Catering"), attr);
+	consent_dialog->set_rp_and_attr(_("Albron Catering"), attr);
+	consent_dialog->set_show_always(false);
 	
 	status_dialog = new pivacy_ui_status_dialog(pivacy_ui_status_dialog::PIVACY_STATUS_PRESENT);
 	
 	//canvas->set_ux_handler(pin_dialog);
-	//canvas->set_ux_handler(consent_dialog);
-	canvas->set_ux_handler(status_dialog);
+	canvas->set_ux_handler(consent_dialog);
+	//canvas->set_ux_handler(status_dialog);
 
 	canvas->to_fullscreen();
 	

@@ -48,10 +48,8 @@ class pivacy_ui_consent_dialog : public pivacy_ui_ux_base
 public:
 	/**
 	 * Constructor
-	 * @param rp the name of the relying party
-	 * @param attr a list of the attributes requested by the RP
 	 */
-	pivacy_ui_consent_dialog(wxString rp, std::list<wxString> attr);
+	pivacy_ui_consent_dialog();
 	
 	/**
 	 * Paint the user interface elements
@@ -65,6 +63,19 @@ public:
 	 * @return true if the parent window should be repainted
 	 */
 	virtual bool on_mouse(wxMouseEvent& event);
+	
+	/**
+	 * Set the relying party and attributes
+	 * @param rp the name of the relying party
+	 * @param attr a list of the attributes requested by the RP
+	 */
+	void set_rp_and_attr(wxString rp, std::list<wxString> attr);
+	
+	/**
+	 * Should the "ALWAYS" button be shown?
+	 * @param show_always set to true if the "ALWAYS" button should be shown
+	 */
+	void set_show_always(bool show_always);
 
 private:
 	wxString rp;
@@ -72,6 +83,7 @@ private:
 	bool areas_set;
 	std::list<pivacy_ui_area> areas;
 	wxString pressed;
+	bool show_always;
 };
 
 #endif // !_PIVACY_UI_CONSENT_H

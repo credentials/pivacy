@@ -35,12 +35,11 @@
 #include "pivacy_ui_colours.h"
 #include <stdio.h>
 
-pivacy_ui_consent_dialog::pivacy_ui_consent_dialog(wxString rp, std::list<wxString> attr)
+pivacy_ui_consent_dialog::pivacy_ui_consent_dialog()
 {
 	areas_set = false;
-	this->rp = rp;
-	this->attr = attr;
 	pressed = _("");
+	show_always = true;
 }
 
 void pivacy_ui_consent_dialog::render(wxGCDC& dc)
@@ -78,6 +77,11 @@ void pivacy_ui_consent_dialog::render(wxGCDC& dc)
 	consent_width += 12;
 	always_width += 12;
 	refuse_width += 12;
+	
+	if (!show_always)
+	{
+		always_width = 0;
+	}
 
 	wxCoord left_x = 22 + (((PIVACY_SCREENWIDTH - 30) - (consent_width + 10 + always_width + 10 + refuse_width)) / 2);
 
@@ -104,23 +108,26 @@ void pivacy_ui_consent_dialog::render(wxGCDC& dc)
 	dc.DrawRoundedRectangle(consent_x, button_y, consent_width, 30, 5);
 	dc.DrawText(_("CONSENT"), consent_x + 6, button_y + 6);
 
-	if (pressed == _("ALWAYS"))
+	if (show_always)
 	{
-		dc.SetPen(wxPen(IRMA_DARK_BLUE, 2));
-		dc.SetBrush(IRMA_WHITE);
-		dc.SetTextBackground(IRMA_WHITE);
-		dc.SetTextForeground(IRMA_DARK_BLUE);
-	}
-	else
-	{
-		dc.SetTextForeground(IRMA_WHITE);
-		dc.SetTextBackground(IRMA_DARK_BLUE);
-		dc.SetPen(wxPen(IRMA_DARK_BLUE));
-		dc.SetBrush(IRMA_DARK_BLUE);
-	}
+		if (pressed == _("ALWAYS"))
+		{
+			dc.SetPen(wxPen(IRMA_DARK_BLUE, 2));
+			dc.SetBrush(IRMA_WHITE);
+			dc.SetTextBackground(IRMA_WHITE);
+			dc.SetTextForeground(IRMA_DARK_BLUE);
+		}
+		else
+		{
+			dc.SetTextForeground(IRMA_WHITE);
+			dc.SetTextBackground(IRMA_DARK_BLUE);
+			dc.SetPen(wxPen(IRMA_DARK_BLUE));
+			dc.SetBrush(IRMA_DARK_BLUE);
+		}
 
-	dc.DrawRoundedRectangle(always_x, button_y, always_width, 30, 5);
-	dc.DrawText(_("ALWAYS"), always_x + 6, button_y + 6);
+		dc.DrawRoundedRectangle(always_x, button_y, always_width, 30, 5);
+		dc.DrawText(_("ALWAYS"), always_x + 6, button_y + 6);
+	}
 
 	if (pressed == _("REFUSE"))
 	{
@@ -185,4 +192,15 @@ bool pivacy_ui_consent_dialog::on_mouse(wxMouseEvent& event)
 	}
 	
 	return rv;
+}
+
+void pivacy_ui_consent_dialog::set_rp_and_attr(wxString rp, std::list<wxString> attr)
+{
+	this->rp = rp;
+	this->attr = attr;
+}
+
+void pivacy_ui_consent_dialog::set_show_always(bool show_always)
+{
+	this->show_always = show_always;
 }
