@@ -15,6 +15,8 @@ pivacy_ui_SOURCES =		pivacy_ui_app.cpp \
 				pivacy_ui_pindialog.cpp \
 				pivacy_ui_pindialog.h \
 				pivacy_ui_consent.cpp \
-				pivacy_ui_consent.h
+				pivacy_ui_consent.h \
+				pivacy_ui_status.cpp \
+				pivacy_ui_status.h
 
 pivacy_ui_LDADD =		@WX_LIBS@

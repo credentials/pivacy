@@ -71,6 +71,7 @@ private:
 	std::list<wxString> attr;
 	bool areas_set;
 	std::list<pivacy_ui_area> areas;
+	wxString pressed;
 };
 
 #endif // !_PIVACY_UI_CONSENT_H

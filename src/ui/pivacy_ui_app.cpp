@@ -35,9 +35,11 @@
 #include "pivacy_ui_canvas.h"
 #include "pivacy_ui_pindialog.h"
 #include "pivacy_ui_consent.h"
+#include "pivacy_ui_status.h"
 
 pivacy_ui_pin_dialog* pin_dialog;
 pivacy_ui_consent_dialog* consent_dialog;
+pivacy_ui_status_dialog* status_dialog;
 
 IMPLEMENT_APP(pivacy_ui_app)
 
@@ -56,8 +58,11 @@ bool pivacy_ui_app::OnInit()
 	attr.push_back(_("Over 21"));
 	consent_dialog = new pivacy_ui_consent_dialog(_("Albron Catering"), attr);
 	
-	canvas->set_ux_handler(pin_dialog);
+	status_dialog = new pivacy_ui_status_dialog(pivacy_ui_status_dialog::PIVACY_STATUS_PRESENT);
+	
+	//canvas->set_ux_handler(pin_dialog);
 	//canvas->set_ux_handler(consent_dialog);
+	canvas->set_ux_handler(status_dialog);
 
 	canvas->to_fullscreen();
 	

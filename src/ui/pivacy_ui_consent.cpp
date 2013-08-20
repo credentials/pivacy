@@ -40,6 +40,7 @@ pivacy_ui_consent_dialog::pivacy_ui_consent_dialog(wxString rp, std::list<wxStri
 	areas_set = false;
 	this->rp = rp;
 	this->attr = attr;
+	pressed = _("");
 }
 
 void pivacy_ui_consent_dialog::render(wxGCDC& dc)
@@ -85,21 +86,56 @@ void pivacy_ui_consent_dialog::render(wxGCDC& dc)
 	wxCoord refuse_x = left_x + consent_width + 10 + always_width + 10;
 	wxCoord button_y = PIVACY_SCREENHEIGHT - 8 - 10 - 30;
 	
-	dc.SetTextForeground(IRMA_WHITE);
-	dc.SetTextBackground(IRMA_DARK_BLUE);
-	dc.SetPen(wxPen(IRMA_DARK_BLUE));
-	dc.SetBrush(IRMA_DARK_BLUE);
+	if (pressed == _("CONSENT"))
+	{
+		dc.SetPen(wxPen(IRMA_DARK_BLUE, 2));
+		dc.SetBrush(IRMA_WHITE);
+		dc.SetTextBackground(IRMA_WHITE);
+		dc.SetTextForeground(IRMA_DARK_BLUE);
+	}
+	else
+	{
+		dc.SetTextForeground(IRMA_WHITE);
+		dc.SetTextBackground(IRMA_DARK_BLUE);
+		dc.SetPen(wxPen(IRMA_DARK_BLUE));
+		dc.SetBrush(IRMA_DARK_BLUE);
+	}
 
 	dc.DrawRoundedRectangle(consent_x, button_y, consent_width, 30, 5);
 	dc.DrawText(_("CONSENT"), consent_x + 6, button_y + 6);
 
+	if (pressed == _("ALWAYS"))
+	{
+		dc.SetPen(wxPen(IRMA_DARK_BLUE, 2));
+		dc.SetBrush(IRMA_WHITE);
+		dc.SetTextBackground(IRMA_WHITE);
+		dc.SetTextForeground(IRMA_DARK_BLUE);
+	}
+	else
+	{
+		dc.SetTextForeground(IRMA_WHITE);
+		dc.SetTextBackground(IRMA_DARK_BLUE);
+		dc.SetPen(wxPen(IRMA_DARK_BLUE));
+		dc.SetBrush(IRMA_DARK_BLUE);
+	}
+
 	dc.DrawRoundedRectangle(always_x, button_y, always_width, 30, 5);
 	dc.DrawText(_("ALWAYS"), always_x + 6, button_y + 6);
 
-	dc.SetPen(wxPen(IRMA_SIGNAL_RED));
-	dc.SetBrush(IRMA_SIGNAL_RED);
-	dc.SetTextForeground(IRMA_WHITE);
-	dc.SetTextBackground(IRMA_SIGNAL_RED);
+	if (pressed == _("REFUSE"))
+	{
+		dc.SetPen(wxPen(IRMA_SIGNAL_RED, 2));
+		dc.SetBrush(IRMA_WHITE);
+		dc.SetTextBackground(IRMA_WHITE);
+		dc.SetTextForeground(IRMA_SIGNAL_RED);
+	}
+	else
+	{
+		dc.SetPen(wxPen(IRMA_SIGNAL_RED));
+		dc.SetBrush(IRMA_SIGNAL_RED);
+		dc.SetTextForeground(IRMA_WHITE);
+		dc.SetTextBackground(IRMA_SIGNAL_RED);
+	}
 
 	dc.DrawRoundedRectangle(refuse_x, button_y, refuse_width, 30, 5);
 	dc.DrawText(_("REFUSE"), refuse_x + 6, button_y + 6);
@@ -126,18 +162,26 @@ bool pivacy_ui_consent_dialog::on_mouse(wxMouseEvent& event)
 			{
 				if (i->get_value() == _("CONSENT"))
 				{
-					printf("User pressed CONSENT\n");
+					pressed = _("CONSENT");
 				}
 				else if (i->get_value() == _("ALWAYS"))
 				{
-					printf("User pressed ALWAYS\n");
+					pressed = _("ALWAYS");
 				}
 				else if (i->get_value() == _("REFUSE"))
 				{
-					printf("User pressed REFUSE\n");
+					pressed = _("REFUSE");
 				}
 			}
 		}
+		
+		rv = true;
+	}
+	else if (event.LeftUp())
+	{
+		pressed = _("");
+		
+		rv = true;
 	}
 	
 	return rv;
