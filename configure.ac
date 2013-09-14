@@ -63,10 +63,6 @@ AC_ARG_WITH(
 	[PIVACY_SCREENHEIGHT="$withval"],
 	[PIVACY_SCREENHEIGHT=240])
 
-################################################################################
-# Optional components
-################################################################################
-
 AM_OPTIONS_WXCONFIG
 
 reqwx=2.4.0
@@ -84,7 +80,13 @@ if test "$wxWin" != 1; then
 		])
 fi
 
-#PKG_CHECK_MODULES([LIBCONFIG], [libconfig >= 1.3.2],, AC_MSG_ERROR([libconfig 1.3.2 or newer not found]))
+PKG_CHECK_MODULES([LIBCONFIG], [libconfig >= 1.3.2],, AC_MSG_ERROR([libconfig 1.3.2 or newer not found]))
+
+PKG_CHECK_MODULES([EDNA], [edna >= 0.1.0],, AC_MSG_ERROR([edna 0.1.0 or newer not found]))
+
+PKG_CHECK_MODULES([SILVIA], [silvia >= 0.1.1],, AC_MSG_ERROR([silvia 0.1.1 or newer not found]))
+
+PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.0], , AC_MSG_ERROR([libxml2 2.0 or newer not found]))
 
 # Check for headers
 AC_HEADER_STDC
@@ -144,6 +146,7 @@ AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	src/ui/Makefile
+	src/credgen/Makefile
 ])
 
 AC_OUTPUT

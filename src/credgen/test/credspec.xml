@@ -1,0 +1,41 @@
+<Credential>
+	<Name>Minimum age</Name>
+	<IssuerID>MijnOverheid</IssuerID>
+	<Id>10</Id>
+
+	<!-- This is left out because it is set during issuance
+	<Secret>0</Secret>
+	-->
+
+	<Attributes>
+		<!-- note: the pivacy credential generator will output all attributes as integers -->
+		<Attribute type="int">
+			<Name>expires</Name>
+			<Value>16436</Value> <!-- January 1st 2015 00:00 UTC -->
+		</Attribute>
+		<Attribute type="string">
+			<Name>over12</Name>
+			<Value>yes</Value>
+		</Attribute>
+		<Attribute type="string">
+			<Name>over16</Name>
+			<Value>yes</Value>
+		</Attribute>
+		<Attribute type="string">
+			<Name>over18</Name>
+			<Value>yes</Value>
+		</Attribute>
+		<Attribute type="string">
+			<Name>over21</Name>
+			<Value>yes</Value>
+		</Attribute>
+	</Attributes>
+
+	<!-- These are left out because they are set during issuance
+	<Signature>
+		<A>0</A>
+		<e>0</e>
+		<v>0</v>
+	</Signature>
+	-->
+</Credential>

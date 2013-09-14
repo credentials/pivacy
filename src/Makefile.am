@@ -2,4 +2,4 @@
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-SUBDIRS = ui
+SUBDIRS = ui credgen
