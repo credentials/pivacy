@@ -34,13 +34,16 @@
 
 #include "config.h"
 #include "pivacy_credential.h"
+#include "silvia_idemix_xmlreader.h"
 
-pivacy_credential::pivacy_credential(const std::string& name, const std::string& issuer)
+pivacy_credential::pivacy_credential(const std::string& name, const std::string& issuer, const std::string& issuer_pubkey_file)
 {
 	silvia_cred = NULL;
+	silvia_pubkey = NULL;
 	cred_id = 0;
 	this->name = name;
 	this->issuer = issuer;
+	this->issuer_pubkey_file = issuer_pubkey_file;
 }
 
 pivacy_credential::~pivacy_credential()
@@ -48,6 +51,11 @@ pivacy_credential::~pivacy_credential()
 	if (silvia_cred != NULL)
 	{
 		delete silvia_cred;
+	}
+	
+	if (silvia_pubkey != NULL)
+	{
+		delete silvia_pubkey;
 	}
 }
 
@@ -94,4 +102,28 @@ void pivacy_credential::add_attribute_name(const std::string attr_name)
 const std::vector<std::string>& pivacy_credential::get_attribute_names()
 {
 	return attribute_names;
+}
+
+const std::string pivacy_credential::get_issuer_public_key_file_name()
+{
+	return issuer_pubkey_file;
+}
+
+silvia_pub_key* pivacy_credential::get_issuer_public_key(const std::string base_path /* = ""*/)
+{
+	if (silvia_pubkey != NULL)
+	{
+		return silvia_pubkey;
+	}
+	
+	silvia_pubkey = silvia_idemix_xmlreader::i()->read_idemix_pubkey(issuer_pubkey_file);
+	
+	if (silvia_pubkey != NULL)
+	{
+		return silvia_pubkey;
+	}
+	
+	silvia_pubkey = silvia_idemix_xmlreader::i()->read_idemix_pubkey(base_path + "/" + issuer_pubkey_file);
+	
+	return silvia_pubkey;
 }

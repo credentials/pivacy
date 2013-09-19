@@ -38,4 +38,7 @@
 		<v>0</v>
 	</Signature>
 	-->
+
+	<!-- This is not used during issuance but must be set for the emulator to work -->
+	<IssuerPublicKeyFile>ipk.xml</IssuerPublicKeyFile>
 </Credential>

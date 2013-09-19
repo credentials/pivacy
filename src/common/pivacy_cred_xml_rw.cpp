@@ -79,6 +79,7 @@ pivacy_credential* pivacy_credential_xml_rw::read_pivacy_credential(const std::s
 	bool issuer_set = false;
 	unsigned short id = 0;
 	bool id_set = false;
+	std::string issuer_pubkey_file;
 	silvia_integer_attribute secret(0);
 	std::vector<std::string> attribute_names;
 	std::vector<silvia_attribute*> attribute_values;
@@ -263,6 +264,8 @@ pivacy_credential* pivacy_credential_xml_rw::read_pivacy_credential(const std::s
 						A = mpz_class((const char*) A_val);
 						
 						A_set = true;
+						
+						xmlFree(A_val);
 					}
 				}
 				if (xmlStrcasecmp(sig_component->name, (const xmlChar*) "e") == 0)
@@ -274,6 +277,8 @@ pivacy_credential* pivacy_credential_xml_rw::read_pivacy_credential(const std::s
 						e = mpz_class((const char*) e_val);
 						
 						e_set = true;
+						
+						xmlFree(e_val);
 					}
 				}
 				if (xmlStrcasecmp(sig_component->name, (const xmlChar*) "v") == 0)
@@ -285,6 +290,8 @@ pivacy_credential* pivacy_credential_xml_rw::read_pivacy_credential(const std::s
 						v = mpz_class((const char*) v_val);
 						
 						v_set = true;
+						
+						xmlFree(v_val);
 					}
 				}
 				
@@ -299,6 +306,17 @@ pivacy_credential* pivacy_credential_xml_rw::read_pivacy_credential(const std::s
 				return NULL;
 			}
 		}
+		else if (xmlStrcasecmp(child_elem->name, (const xmlChar*) "IssuerPublicKeyFile") == 0)
+		{
+			xmlChar* issuer_pubkey_file_value = xmlNodeListGetString(xmldoc, child_elem->xmlChildrenNode, 1);
+			
+			if (issuer_pubkey_file_value != NULL)
+			{
+				issuer_pubkey_file = std::string((const char*) issuer_pubkey_file_value);
+				
+				xmlFree(issuer_pubkey_file_value);
+			}
+		}
 		
 		child_elem = child_elem->next;
 	}
@@ -311,7 +329,7 @@ pivacy_credential* pivacy_credential_xml_rw::read_pivacy_credential(const std::s
 	}
 	
 	// Construct credential
-	pivacy_credential* pivacy_cred = new pivacy_credential(name, issuer);
+	pivacy_credential* pivacy_cred = new pivacy_credential(name, issuer, issuer_pubkey_file);
 	
 	// Add attribute names
 	for (std::vector<std::string>::iterator i = attribute_names.begin(); i != attribute_names.end(); i++)
@@ -393,6 +411,17 @@ bool pivacy_credential_xml_rw::write_pivacy_credential(const std::string cred_fi
 	fprintf(cred_file, "\t\t<v>%s</v>\n", v_int.int_rep().c_str());
 	
 	fprintf(cred_file, "\t</Signature>\n");
+	
+	fprintf(cred_file, "\n");
+	
+	if (cred->get_issuer_public_key_file_name().empty())
+	{
+		fprintf(cred_file, "\t<IssuerPublicKeyFile>SET FOR EMULATOR!</IssuerPublicKeyFile>\n");
+	}
+	else
+	{
+		fprintf(cred_file, "\t<IssuerPublicKeyFile>%s</IssuerPublicKeyFile>\n", cred->get_issuer_public_key_file_name().c_str());
+	}
 	
 	fprintf(cred_file, "</Credential>\n");
 	

@@ -98,8 +98,10 @@ AC_FUNC_MEMCMP
 full_sysconfdir=`eval eval eval eval eval echo "${sysconfdir}" | sed "s#NONE#${prefix}#" | sed "s#NONE#${ac_default_prefix}#"`
 full_localstatedir=`eval eval eval eval eval echo "${localstatedir}" | sed "s#NONE#${prefix}#" | sed "s#NONE#${ac_default_prefix}#"`
 full_libdir=`eval eval eval eval eval echo "${libdir}" | sed "s#NONE#${prefix}#" | sed "s#NONE#${ac_default_prefix}#"`
-default_pivacy_conf="`eval echo ${full_sysconfdir} | sed s,NONE,$ac_default_prefix,g`/pivacy.conf"
-default_pid_file="`eval echo ${full_localstatedir} | sed s,NONE,$ac_default_prefix,g`/run/pivacy.pid"
+default_pivacy_cardemu_conf="`eval echo ${full_sysconfdir} | sed s,NONE,$ac_default_prefix,g`/pivacy_cardemu.conf"
+default_pivacy_cardemu_pid_file="`eval echo ${full_localstatedir} | sed s,NONE,$ac_default_prefix,g`/run/pivacy_cardemu.pid"
+default_pivacy_ui_conf="`eval echo ${full_sysconfdir} | sed s,NONE,$ac_default_prefix,g`/pivacy_ui.conf"
+default_pivacy_ui_pid_file="`eval echo ${full_localstatedir} | sed s,NONE,$ac_default_prefix,g`/run/pivacy_ui.pid"
 
 # Define some variables for the code
 AC_DEFINE_UNQUOTED(
@@ -128,14 +130,24 @@ AC_DEFINE_UNQUOTED(
 	[The screen height]
 )
 AC_DEFINE_UNQUOTED(
-	[DEFAULT_PIVACY_CONF],
-	["$default_pivacy_conf"],
-	[The default configuration file]
+	[DEFAULT_PIVACY_CARDEMU_CONF],
+	["$default_pivacy_cardemu_conf"],
+	[The default configuration file for the card emulator]
 )
 AC_DEFINE_UNQUOTED(
-	[DEFAULT_PIVACY_PIDFILE],
-	["$default_pid_file"],
-	[The default PID file]
+	[DEFAULT_PIVACY_CARDEMU_PIDFILE],
+	["$default_pivacy_cardemu_pid_file"],
+	[The default PID file for the card emulator]
+)
+AC_DEFINE_UNQUOTED(
+	[DEFAULT_PIVACY_UI_CONF],
+	["$default_pivacy_cardemu_conf"],
+	[The default configuration file for the UI]
+)
+AC_DEFINE_UNQUOTED(
+	[DEFAULT_PIVACY_UI_PIDFILE],
+	["$default_pivacy_cardemu_pid_file"],
+	[The default PID file for the card UI]
 )
 
 # Generate theinstall script
@@ -147,6 +159,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/ui/Makefile
 	src/credgen/Makefile
+	src/cardemu/Makefile
 ])
 
 AC_OUTPUT

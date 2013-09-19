@@ -3,7 +3,9 @@
 MAINTAINERCLEANFILES = 		$(srcdir)/Makefile.in
 
 AM_CPPFLAGS = 			-I$(srcdir)/.. \
-				@WX_CPPFLAGS@
+				-I$(srcdir)/../common \
+				@WX_CPPFLAGS@ \
+				@LIBCONFIG_CFLAGS@
 
 bin_PROGRAMS =			pivacy_ui
 
@@ -19,4 +21,5 @@ pivacy_ui_SOURCES =		pivacy_ui_app.cpp \
 				pivacy_ui_status.cpp \
 				pivacy_ui_status.h
 
-pivacy_ui_LDADD =		@WX_LIBS@
+pivacy_ui_LDADD =		@WX_LIBS@ \
+				@LIBCONFIG_LIBS@

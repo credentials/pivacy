@@ -48,7 +48,7 @@ public:
 	 * @param name the name of the credential
 	 * @param issuer the issuer of the credential
 	 */
-	pivacy_credential(const std::string& name, const std::string& issuer);
+	pivacy_credential(const std::string& name, const std::string& issuer, const std::string& issuer_pubkey_file);
 	
 	/**
 	 * Destructor
@@ -105,13 +105,28 @@ public:
 	 */
 	const std::vector<std::string>& get_attribute_names();
 	
+	/**
+	 * Get the issuer public key file name
+	 * @return the issuer public key file name
+	 */
+	const std::string get_issuer_public_key_file_name();
+	
+	/**
+	 * Get the issuer public key
+	 * @return the issuer public key or NULL if the public key could not be loaded
+	 */
+	silvia_pub_key* get_issuer_public_key(const std::string base_path = "");
+	
 private:
 	std::string name;
 	std::string issuer;
+	std::string issuer_pubkey_file;
 
 	std::vector<std::string> attribute_names;
 	
 	silvia_credential* silvia_cred;
+	
+	silvia_pub_key* silvia_pubkey;
 	
 	unsigned short cred_id;
 };

@@ -2,4 +2,4 @@
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-SUBDIRS = ui credgen
+SUBDIRS = ui credgen cardemu
