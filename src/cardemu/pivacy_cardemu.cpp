@@ -98,7 +98,6 @@ void set_parameters()
 	silvia_system_parameters::i()->set_l_e(l_e);
 	silvia_system_parameters::i()->set_l_e_prime(l_e_prime);
 	silvia_system_parameters::i()->set_hash_type(hash_type);
-	silvia_system_parameters::i()->set_irma_kludge(true);
 }
 
 void write_pid(const char* pid_path, pid_t pid)
