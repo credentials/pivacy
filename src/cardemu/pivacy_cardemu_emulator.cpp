@@ -266,7 +266,7 @@ void pivacy_cardemu_emulator::reset_proof()
 
 void pivacy_cardemu_emulator::process_select(bytestring& c_apdu, bytestring& r_apdu)
 {
-	const bytestring IRMA_AID = "49524D4163617264";
+	const bytestring IRMA_AID = "F849524D4163617264";
 	
 	if (c_apdu.size() < 5)
 	{
@@ -278,8 +278,29 @@ void pivacy_cardemu_emulator::process_select(bytestring& c_apdu, bytestring& r_a
 	}
 	else
 	{
-		const char select_response[] = "pivacy01";
-		r_apdu = bytestring((const unsigned char*) select_response, strlen(select_response));
+		// Version 0.8 + emu
+		// 
+		// Encoded as ISO7816 FCI record
+		//
+		// 0x6F YZ: FCI template (length: 0xYZ bytes)
+		//   0xA5 YZ: Proprietary information encoded in BER-TLV (length: 0xYZ bytes)
+		//     0x10 YZ: Sequence, version information (length: 0xYZ bytes)
+		//       0x02 01: Integer, major (length: 0x01 byte)
+		//       0x02 01: Integer, minor (length: 0x01 byte)
+		//       0x02 01: Integer, maintenance (optional, length: 0x01 byte)
+		//       0x02 01: Integer, build (optional, length: 0x01 byte)
+		//       0x10 YZ: Sequence, extra information (optional, length: 0xYZ bytes)
+		//         0x0C YZ: UTF-8 string, identifier (length: 0xYZ bytes)
+		//         0x02 01: Integer, counter (optional, length: 0x01 byte)
+		//         0x04 YZ: Octet string, data (optional, length: 0xYZ bytes)
+
+		r_apdu = "6F11";
+		  r_apdu += "A50F";
+		    r_apdu += "100D";
+		      r_apdu += "020100";		// major version = 0
+		      r_apdu += "020108";		// minor version = 8
+		      r_apdu += "1007";
+		        r_apdu += "0C03454D55";	// EMU
 		r_apdu += "9000";
 	}
 }
@@ -368,9 +389,9 @@ void pivacy_cardemu_emulator::process_prove_credential(bytestring& c_apdu, bytes
 		}
 		else
 		{
-			curproof_context = c_apdu.substr(OFS_CDATA + 2, SYSPAR(l_H) / 8);
+			unsigned short D_val = (c_apdu[OFS_CDATA + 2] << 8) + c_apdu[OFS_CDATA + 2 + 1];
 			
-			unsigned short D_val = (c_apdu[OFS_CDATA + 2 + (SYSPAR(l_H) / 8)] << 8) + c_apdu[OFS_CDATA + 2 + (SYSPAR(l_H) / 8) + 1];
+			curproof_context = c_apdu.substr(OFS_CDATA + 2 + 2, SYSPAR(l_H) / 8);
 			
 			time_t timestamp = (c_apdu[OFS_CDATA + 2 + (SYSPAR(l_H) / 8) + 2] << 24) +
 			                   (c_apdu[OFS_CDATA + 2 + (SYSPAR(l_H) / 8) + 3] << 16) +
