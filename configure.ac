@@ -13,6 +13,17 @@ define([PIVACY_VERSION_MINOR], [1])
 define([PIVACY_VERSION_BUILDREV], [0])
 define([PACKAGE_SUFFIX], [])
 
+# Library version
+
+# Code changed:                      PIVACY_UI_VERSION_REVISION++
+# Interface added/removed/changed:   PIVACY_UI_VERSION_CURRENT++, PIVACY_UI_VERSION_REVISION=0
+# Interface added:                   PIVACY_UI_VERSION_AGE++
+# Interface removed:                 PIVACY_UI_VERSION_AGE=0
+
+define([PIVACY_UI_VERSION_CURRENT], [0])
+define([PIVACY_UI_VERSION_AGE], [0])
+define([PIVACY_UI_VERSION_REVISION], [0])
+
 ################################################################################
 # Configuration functions                                                      #
 ################################################################################
@@ -40,6 +51,10 @@ ACX_STRICT
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 PKG_PROG_PKG_CONFIG
+
+# Version info for the library
+PIVACY_UI_VERSION_INFO="PIVACY_UI_VERSION_CURRENT:PIVACY_UI_VERSION_REVISION:PIVACY_UI_VERSION_AGE"
+AC_SUBST(PIVACY_UI_VERSION_INFO)
 
 # Log level
 AC_ARG_WITH(
@@ -157,9 +172,11 @@ AC_PROG_INSTALL
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	src/lib/Makefile
 	src/ui/Makefile
 	src/credgen/Makefile
 	src/cardemu/Makefile
+	src/samples/Makefile
 ])
 
 AC_OUTPUT

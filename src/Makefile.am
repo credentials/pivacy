@@ -2,4 +2,4 @@
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
-SUBDIRS = ui credgen cardemu
+SUBDIRS = lib ui credgen cardemu samples

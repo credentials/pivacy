@@ -4,6 +4,7 @@ MAINTAINERCLEANFILES = 		$(srcdir)/Makefile.in
 
 AM_CPPFLAGS = 			-I$(srcdir)/.. \
 				-I$(srcdir)/../common \
+				-I$(srcdir)/../../include \
 				@XML_CFLAGS@ \
 				@SILVIA_CFLAGS@ \
 				@EDNA_CFLAGS@ \
@@ -22,7 +23,8 @@ pivacy_cardemu_SOURCES =	pivacy_cardemu.cpp \
 				../common/pivacy_cred_xml_rw.cpp \
 				../common/pivacy_cred_xml_rw.h \
 				../common/pivacy_credential.cpp \
-				../common/pivacy_credential.h
+				../common/pivacy_credential.h \
+				../../include/pivacy_ui_lib.h
 
 pivacy_cardemu_LDADD =		@XML_LIBS@ \
 				@SILVIA_LIBS@ \

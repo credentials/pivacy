@@ -33,6 +33,8 @@
 #include "config.h"
 #include "pivacy_ui_status.h"
 #include "pivacy_ui_colours.h"
+#include "pivacy_ui_lib.h"
+#include "pivacy_log.h"
 #include <stdio.h>
 #include <wx/mstream.h>
 
@@ -42,41 +44,49 @@
 #include "images/wait_160.inc"
 #include "images/present_160.inc"
 
-pivacy_ui_status_dialog::pivacy_ui_status_dialog(int status)
+pivacy_ui_status_dialog::pivacy_ui_status_dialog()
+{
+	// Set default status to "waiting"
+	wxMemoryInputStream status_image_stream(wait_160_png, sizeof(wait_160_png));
+	status_image = wxImage(status_image_stream, wxBITMAP_TYPE_PNG);
+}
+
+void pivacy_ui_status_dialog::set_status(int status)
 {
 	switch(status)
 	{
-	case PIVACY_STATUS_OK:
+	case PIVACY_STATE_OK:
 		{
 			wxMemoryInputStream status_image_stream(ok_160_png, sizeof(ok_160_png));
 			status_image = wxImage(status_image_stream, wxBITMAP_TYPE_PNG);
 		}
 		break;
-	case PIVACY_STATUS_WARN:
+	case PIVACY_STATE_WARN:
 		{
 			wxMemoryInputStream status_image_stream(warn_160_png, sizeof(warn_160_png));
 			status_image = wxImage(status_image_stream, wxBITMAP_TYPE_PNG);
 		}
 		break;
-	case PIVACY_STATUS_FAIL:
+	case PIVACY_STATE_FAIL:
 		{
 			wxMemoryInputStream status_image_stream(fail_160_png, sizeof(fail_160_png));
 			status_image = wxImage(status_image_stream, wxBITMAP_TYPE_PNG);
 		}
 		break;
-	case PIVACY_STATUS_WAIT:
+	case PIVACY_STATE_WAIT:
 		{
 			wxMemoryInputStream status_image_stream(wait_160_png, sizeof(wait_160_png));
 			status_image = wxImage(status_image_stream, wxBITMAP_TYPE_PNG);
 		}
 		break;
-	case PIVACY_STATUS_PRESENT:
+	case PIVACY_STATE_PRESENT:
 		{
 			wxMemoryInputStream status_image_stream(present_160_png, sizeof(present_160_png));
 			status_image = wxImage(status_image_stream, wxBITMAP_TYPE_PNG);
 		}
 		break;
 	default:
+		ERROR_MSG("Request to show unknown status 0x%08X", status);
 		return;
 	}
 }

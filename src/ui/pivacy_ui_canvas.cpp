@@ -33,6 +33,10 @@
 #include "config.h"
 #include "pivacy_ui_canvas.h"
 #include "pivacy_ui_colours.h"
+#include "pivacy_log.h"
+#include "pivacy_ui_status.h"
+#include "pivacy_ui_consent.h"
+#include "pivacy_ui_pindialog.h"
 #include <wx/mstream.h>
 #include <wx/dcbuffer.h>
 
@@ -101,6 +105,98 @@ bool pivacy_ui_ux_blank::on_mouse(wxMouseEvent& event)
 void pivacy_ui_ux_blank::set_status(const wxString& status)
 {
 	this->status = status;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Pivacy UI event type
+////////////////////////////////////////////////////////////////////////
+
+IMPLEMENT_DYNAMIC_CLASS(pivacy_ui_event, wxEvent)
+
+DEFINE_EVENT_TYPE(pvEVT_PIVACYEVENT)
+
+pivacy_ui_event::pivacy_ui_event()
+{
+	wait_mutex = NULL;
+	wait_cond = NULL;
+	type = 0;
+}
+
+pivacy_ui_event::pivacy_ui_event(wxMutex* wait_mutex, wxCondition* wait_cond, int type, wxWindow* win /* = NULL */)
+{
+	this->wait_mutex = wait_mutex;
+	this->wait_cond = wait_cond;
+	this->type = type;
+	
+	SetEventType(pvEVT_PIVACYEVENT);
+	SetEventObject(win);
+}
+	
+void pivacy_ui_event::set_show_status(int status)
+{
+	show_status = status;
+}
+
+int pivacy_ui_event::get_show_status()
+{
+	return show_status;
+}
+	
+void pivacy_ui_event::set_pin(std::string PIN)
+{
+	this->PIN = PIN;
+}
+
+void pivacy_ui_event::set_rp_name(wxString& rp_name)
+{
+	this->rp_name = rp_name;
+}
+
+void pivacy_ui_event::set_rp_attributes(std::vector<wxString> attributes)
+{
+	this->rp_attributes = attributes;
+}
+
+wxString pivacy_ui_event::get_rp_name()
+{
+	return rp_name;
+}
+	
+std::vector<wxString> pivacy_ui_event::get_rp_attributes()
+{
+	return rp_attributes;
+}
+
+void pivacy_ui_event::set_consent_result(int consent_result)
+{
+	this->consent_result = consent_result;
+}
+	
+std::string pivacy_ui_event::get_pin()
+{
+	return PIN;
+}
+	
+int pivacy_ui_event::get_consent_result()
+{
+	return consent_result;
+}
+
+int pivacy_ui_event::get_type()
+{
+	return type;
+}
+
+void pivacy_ui_event::signal_handled()
+{
+	wxMutexLocker lock(*wait_mutex);
+	
+	wait_cond->Broadcast();
+}
+	
+wxEvent* pivacy_ui_event::Clone() const
+{
+	return new pivacy_ui_event(*this);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -200,6 +296,7 @@ BEGIN_EVENT_TABLE(pivacy_ui_canvas, wxFrame)
     EVT_MENU(CANVAS_ID_QUIT, pivacy_ui_canvas::on_quit)
     EVT_MENU(CANVAS_ID_FULLSCREEN, pivacy_ui_canvas::on_fullscreen)
     EVT_PAINT(pivacy_ui_canvas::on_paint)
+    EVT_PIVACYEVENT(pivacy_ui_canvas::on_pivacy_ui_evt)
 END_EVENT_TABLE()
 
 ////////////////////////////////////////////////////////////////////////
@@ -230,18 +327,41 @@ pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size) :
 	SetSizerAndFit(sizer);
 	
 	ui_panel->set_ux_handler(&blank_ux_handler);
+	
+	// Get instances of the subdialogs
+	pin_dialog = new pivacy_ui_pin_dialog();
+	consent_dialog = new pivacy_ui_consent_dialog();
+	status_dialog = new pivacy_ui_status_dialog();
+	
+	comm_thread = new pivacy_ui_comm_thread(this);
+	
+	comm_thread->start();
 }
 
 pivacy_ui_canvas::~pivacy_ui_canvas()
 {
+	delete pin_dialog;
+	delete consent_dialog;
+	delete status_dialog;
 	delete ui_panel;
 }
 
 void pivacy_ui_canvas::on_quit(wxCommandEvent& event)
 {
+	if (comm_thread != NULL)
+	{
+		INFO_MSG("Stopping communications thread");
+		
+		comm_thread->stop();
+		delete comm_thread;
+		comm_thread = NULL;
+		
+		INFO_MSG("Communication thread stopped");
+	}
+	
 	Close(true);
 }
-	
+
 void pivacy_ui_canvas::on_fullscreen(wxCommandEvent& event)
 {
 	ShowFullScreen(!IsFullScreen());
@@ -279,4 +399,27 @@ void pivacy_ui_canvas::to_fullscreen()
 void pivacy_ui_canvas::set_status(const wxString& status)
 {
 	blank_ux_handler.set_status(status);
+}
+
+void pivacy_ui_canvas::on_pivacy_ui_evt(pivacy_ui_event& event)
+{
+	DEBUG_MSG("pivacy_ui_event of type %d", event.get_type());
+	
+	switch(event.get_type())
+	{
+	case PEVT_SHOWSTATUS:
+		status_dialog->set_status(event.get_show_status());
+		this->set_ux_handler(status_dialog);
+		break;
+	case PEVT_NOCLIENT:
+		this->set_ux_handler(&blank_ux_handler);
+		break;
+	default:
+		ERROR_MSG("Unhandled pivacy_ui_event of type %d", event.get_type());
+		break;
+	}
+	
+	this->Refresh();
+	
+	event.signal_handled();
 }

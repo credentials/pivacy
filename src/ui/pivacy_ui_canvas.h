@@ -38,6 +38,16 @@
 #else
 #include "wx/wx.h" 
 #endif // WX_PRECOMP
+#include "pivacy_ui_comm.h"
+#include <string>
+
+/*
+ * Pre-define classes
+ */
+ 
+class pivacy_ui_pin_dialog;
+class pivacy_ui_status_dialog;
+class pivacy_ui_consent_dialog;
 
 /**
  * Screen area class
@@ -191,6 +201,141 @@ private:
 };
 
 /**
+ * Event class for communication between comm thread and main canvas
+ */
+ 
+#define PEVT_SHOWSTATUS				0x1
+#define PEVT_REQUESTPIN				0x2
+#define PEVT_REQUESTCONSENT			0x3
+#define PEVT_NOCLIENT				0x4
+
+class pivacy_ui_event : public wxEvent
+{
+public:
+	/**
+	 * Blank constructor
+	 */
+	pivacy_ui_event();
+
+	/**
+	 * Constructor
+	 * @param wait_mutex mutex used to wait until the event has been handled by the main thread
+	 * @param wait_cond condition used to wait until the event has been handled by the main thread
+	 * @param type the event type
+	 * @param win the associated window
+	 */
+	pivacy_ui_event(wxMutex* wait_mutex, wxCondition* wait_cond, int type, wxWindow* win = NULL);
+	
+	/**
+	 * Set the status to show (in case of PEVT_SHOWSTATUS event)
+	 * @param status the status to show
+	 */
+	void set_show_status(int status);
+	
+	/**
+	 * Get the status to show
+	 * @return the status to show
+	 */
+	int get_show_status();
+	
+	/**
+	 * Set the PIN
+	 * @param PIN the PIN entered by the user
+	 */
+	void set_pin(std::string PIN);
+	
+	/**
+	 * Set the relying party that is asking consent
+	 * @param rp_name the name of the relying party
+	 */
+	void set_rp_name(wxString& rp_name);
+	
+	/**
+	 * Set the names of the attributes that the relying party is asking for
+	 * @param attributes the attributes
+	 */
+	void set_rp_attributes(std::vector<wxString> attributes);
+	
+	/**
+	 * Get the relying party that is asking for consent
+	 * @return the name of the relying party that is asking for consent
+	 */
+	wxString get_rp_name();
+	
+	/**
+	 * Get the names of the attributes that the relying party is asking for
+	 * @return the names of the attributes that the relying party is asking for
+	 */
+	std::vector<wxString> get_rp_attributes();
+	
+	/**
+	 * Set the consent result
+	 * @param consent_result the consent result
+	 */
+	void set_consent_result(int consent_result);
+	
+	/**
+	 * Retrieve the PIN (in case of PVT_REQUESTPIN event)
+	 * @return the PIN entered by the user
+	 */
+	std::string get_pin();
+	
+	/**
+	 * Retrieve the user consent result (in case of PEVT_REQUESTCONSENT event)
+	 * @return the consent result
+	 */
+	int get_consent_result();
+	
+	/**
+	 * Get event type
+	 * @return the event type
+	 */
+	int get_type();
+	
+	/**
+	 * Signal that the event has been handled
+	 */
+	void signal_handled();
+	
+	/**
+	 * Clone the event
+	 */
+	wxEvent* Clone() const;
+	
+	DECLARE_DYNAMIC_CLASS( pivacy_ui_event );
+
+private:
+	// Event type
+	int type;
+
+	// Event input parameters
+	int show_status;
+	wxString rp_name;
+	std::vector<wxString> rp_attributes;
+	
+	// Event return data
+	std::string PIN;
+	int consent_result;
+	
+	// Condition used to wait for handling of the event
+	wxMutex* wait_mutex;
+	wxCondition* wait_cond;
+};
+
+BEGIN_DECLARE_EVENT_TYPES()
+	DECLARE_EVENT_TYPE( pvEVT_PIVACYEVENT, 1 )
+END_DECLARE_EVENT_TYPES()
+
+typedef void (wxEvtHandler::*pivacy_event_fn)(pivacy_ui_event&);
+
+#define EVT_PIVACYEVENT(func) \
+	DECLARE_EVENT_TABLE_ENTRY( pvEVT_PIVACYEVENT, 			\
+		-1, 												\
+		-1,													\
+		(wxObjectEventFunction)	(pivacy_event_fn)& func,	\
+		(wxObject*) NULL),
+
+/**
  * Main canvas class
  */
 
@@ -227,6 +372,12 @@ public:
 	void on_paint(wxPaintEvent& event);
 	
 	/**
+	 * Pivacy UI event handler
+	 * @param event the Pivacy UI event
+	 */
+	void on_pivacy_ui_evt(pivacy_ui_event& event);
+	
+	/**
 	 * Set the UX handler
 	 * @param ux_handler the UX handler
 	 */
@@ -250,6 +401,14 @@ private:
 	
 	// Basic UX handler shown when no other has been specified
 	pivacy_ui_ux_blank blank_ux_handler;
+	
+	// Communications thread
+	pivacy_ui_comm_thread* comm_thread;
+	
+	// Subdialogs
+	pivacy_ui_pin_dialog* pin_dialog;
+	pivacy_ui_consent_dialog* consent_dialog;
+	pivacy_ui_status_dialog* status_dialog;
 };
 
 #endif // !_PIVACY_UI_CANVAS_H

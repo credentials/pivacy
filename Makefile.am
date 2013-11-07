@@ -23,4 +23,6 @@ doc_DATA =		AUTHORS \
 			NEWS \
 			README.md
 
+pkginclude_HEADERS =	include/pivacy_ui_lib.h
+
 SUBDIRS = src 

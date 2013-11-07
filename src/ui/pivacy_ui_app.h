@@ -43,6 +43,8 @@ class pivacy_ui_app : public wxApp
 {
 public:
 	virtual bool OnInit();
+	
+	virtual int OnExit();
 };
 
 #endif // _PIVACY_UI_APP_H

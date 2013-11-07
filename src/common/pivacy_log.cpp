@@ -31,7 +31,6 @@
  */
 
 #include "config.h"
-#include "pivacy_errors.h"
 #include "pivacy_log.h"
 #include "pivacy_config.h"
 #include <stdio.h>

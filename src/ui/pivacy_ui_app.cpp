@@ -33,13 +33,10 @@
 #include "config.h"
 #include "pivacy_ui_app.h"
 #include "pivacy_ui_canvas.h"
-#include "pivacy_ui_pindialog.h"
-#include "pivacy_ui_consent.h"
-#include "pivacy_ui_status.h"
-
-pivacy_ui_pin_dialog* pin_dialog;
-pivacy_ui_consent_dialog* consent_dialog;
-pivacy_ui_status_dialog* status_dialog;
+#include "pivacy_config.h"
+#include "pivacy_log.h"
+#include <wx/cmdline.h>
+#include <stdio.h>
 
 IMPLEMENT_APP(pivacy_ui_app)
 
@@ -47,28 +44,95 @@ bool pivacy_ui_app::OnInit()
 {
 	::wxInitAllImageHandlers();
 	
+	/* Parse command-line parameters */
+	wxCmdLineParser parser(this->argc, this->argv);
+	
+	parser.AddOption(wxT("c"), wxEmptyString, _("Use specified configuration file (defaults to ") + wxString(DEFAULT_PIVACY_UI_CONF, wxConvUTF8) + wxT(")"));
+	parser.AddSwitch(wxT("h"), wxEmptyString, _("Print this help message"));
+	parser.AddSwitch(wxT("v"), wxEmptyString, _("Print version information"));
+	
+	if (parser.Parse() != 0)
+	{
+		return false;
+	}
+	
+	if (parser.Found(wxT("h")))
+	{
+		parser.Usage();
+		
+		return false;
+	}
+	
+	if (parser.Found(wxT("v")))
+	{
+		printf("Pivacy User Interface daemon version %s\n", VERSION);
+		printf("Copyright (c) 2013 Roland van Rijswijk-Deij\n\n");
+		printf("Use, modification and redistribution of this software is subject to the terms\n");
+		printf("of the license agreement. This software is licensed under a 2-clause BSD-style\n");
+		printf("license a copy of which is included as the file LICENSE in the distribution.\n");
+		
+		return false;
+	}
+	
+	std::string configfile = DEFAULT_PIVACY_UI_CONF;
+	
+	wxString configfile_option;
+	
+	if (parser.Found(wxT("c"), &configfile_option))
+	{
+		configfile = configfile_option.mb_str(wxConvUTF8);
+	}
+	
+	/* Load configuration */
+	if (pivacy_init_config_handling(configfile.c_str()) != PRV_OK)
+	{
+		fprintf(stderr, "Failed to load configuration from %s\n", configfile.c_str());
+		
+		return false;
+	}
+	
+	/* Initialise logging */
+	if (pivacy_init_log() != PRV_OK)
+	{
+		fprintf(stderr, "Failed to initialise logging, exiting\n");
+		
+		return false;
+	}
+	
+	INFO_MSG("Pivacy UI version %s starting", VERSION);
+	
 	pivacy_ui_canvas* canvas = new pivacy_ui_canvas(wxSize(PIVACY_SCREENWIDTH, PIVACY_SCREENHEIGHT));
 	canvas->Show(true);
 	SetTopWindow(canvas);
 	
-	pin_dialog = new pivacy_ui_pin_dialog();
-
-	consent_dialog = new pivacy_ui_consent_dialog();
-	std::list<wxString> attr;
-	attr.push_back(_("Over 18"));
-	attr.push_back(_("Over 21"));
-	consent_dialog->set_rp_and_attr(_("Albron Catering"), attr);
-	consent_dialog->set_show_always(false);
+	bool show_fullscreen = false;
 	
-	status_dialog = new pivacy_ui_status_dialog(pivacy_ui_status_dialog::PIVACY_STATUS_PRESENT);
+	if (pivacy_conf_get_bool("ui", "fullscreen", show_fullscreen, true) != PRV_OK)
+	{
+		ERROR_MSG("Failed to read configuration option for fullscreen display");
+		
+		// Default to fullscreen
+		canvas->to_fullscreen();
+	}
+	else
+	{
+		if (show_fullscreen)
+		{
+			canvas->to_fullscreen();
+		}
+	}
 	
-	//canvas->set_ux_handler(pin_dialog);
-	canvas->set_ux_handler(consent_dialog);
-	//canvas->set_ux_handler(status_dialog);
-
-	canvas->to_fullscreen();
-	
-	canvas->set_status(_("Waiting for IRMA system..."));
+	canvas->set_status(_("Waiting for Pivacy system..."));
 	
 	return true;
+}
+
+int pivacy_ui_app::OnExit()
+{
+	/* Uninitialise logging */
+	INFO_MSG("Pivacy UI version %s exiting", VERSION);
+	
+	pivacy_uninit_log();
+	
+	return 0;
 }

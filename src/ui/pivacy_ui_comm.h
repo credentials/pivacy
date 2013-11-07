@@ -25,53 +25,73 @@
  */
 
 /*****************************************************************************
- pivacy_ui_status.h
+ pivacy_ui_comm.h
 
- The Pivacy UI consent dialog
+ The Pivacy UI communications thread
  *****************************************************************************/
- 
-#ifndef _PIVACY_UI_STATUS_H
-#define _PIVACY_UI_STATUS_H
- 
+
+#ifndef _PIVACY_UI_COMM_H
+#define _PIVACY_UI_COMM_H
+
 #ifdef WX_PRECOMP
 #include "wx/wxprec.h"
 #else
 #include "wx/wx.h" 
 #endif // WX_PRECOMP
+#include <vector>
 
-#include "pivacy_ui_canvas.h"
-#include <string>
-#include <list>
-
-class pivacy_ui_status_dialog : public pivacy_ui_ux_base
+class pivacy_ui_comm_thread : public wxThread
 {
 public:
 	/**
 	 * Constructor
+	 * @param main_wnd the main window to send events to
 	 */
-	pivacy_ui_status_dialog();
-	
-	/**
-	 * Set the status
-	 * @param status the status to display
-	 */
-	void set_status(int status);
-	
-	/**
-	 * Paint the user interface elements
-	 * @param dc the device context to render on
-	 */
-	virtual void render(wxGCDC& dc);
+	pivacy_ui_comm_thread(wxWindow* main_wnd);
 
 	/**
-	 * Handle mouse events
-	 * @param event the mouse event
-	 * @return true if the parent window should be repainted
+	 * Thread entry point
 	 */
-	virtual bool on_mouse(wxMouseEvent& event);
+	virtual ExitCode Entry();
 	
+	/**
+	 * Start the thread
+	 */
+	bool start();
+	
+	/**
+	 * Stop the thread
+	 */
+	void stop();
+	
+	/**
+	 * Drop the client connection and restore the default UI state
+	 * @param socket_fd the client socket to close
+	 */
+	void drop_client(int& socket_fd);
+
 private:
-	wxImage status_image;
+	/**
+	 * Receive data from the client
+	 * @param client_socket the socket to receive data from
+	 * @param rx the data received
+	 * @return true if the communication was successful, false otherwise
+	 */
+	bool recv_from_client(int client_socket, std::vector<unsigned char>& rx);
+	
+	/**
+	 * Send data to the client
+	 * @param client_socket the socket to send data to
+	 * @param tx the data to send
+	 * @return true if the data was sent successfully, false otherwise
+	 */
+	bool send_to_client(int client_socket, std::vector<unsigned char>& tx);
+
+	// Should the thread be running
+	bool should_run;
+	
+	// The main window
+	wxWindow* main_wnd;
 };
 
-#endif // !_PIVACY_UI_STATUS_H
+#endif // _PIVACY_UI_COMM_H

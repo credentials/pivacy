@@ -44,7 +44,7 @@ void pivacy_ui_pin_dialog::render(wxGCDC& dc)
 {
 	dc.SetTextForeground(IRMA_DARK_BLUE);
 	dc.SetTextBackground(IRMA_WHITE);
-	dc.SetFont(wxFont(_("Ubuntu Bold 16")));
+	dc.SetFont(wxFont(wxT("Ubuntu Bold 16")));
 	
 	dc.DrawText(_("Enter your PIN: "), 50, 50);
 	

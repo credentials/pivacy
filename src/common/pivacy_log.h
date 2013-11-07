@@ -34,7 +34,7 @@
 #define _PIVACY_LOG_H
 
 #include "config.h"
-#include "pivacy_errors.h"
+#include "pivacy_ui_lib.h"
 
 /* Log levels */
 #define PIVACY_LOG_NONE		0
