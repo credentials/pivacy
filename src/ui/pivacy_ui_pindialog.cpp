@@ -38,6 +38,8 @@ pivacy_ui_pin_dialog::pivacy_ui_pin_dialog()
 {
 	areas_set = false;
 	pressed = _("none");
+	handling_event = false;
+	pin_entry_evt = NULL;
 }
 
 void pivacy_ui_pin_dialog::render(wxGCDC& dc)
@@ -210,6 +212,18 @@ bool pivacy_ui_pin_dialog::on_mouse(wxMouseEvent& event)
 				{
 					pin_code.clear();
 				}
+				else if (i->get_value() == _("OK"))
+				{
+					if (handling_event)
+					{
+						handling_event = false;
+						
+						pin_entry_evt->set_pin(pin_code);
+						pin_entry_evt->signal_handled();
+						pin_code.clear();
+						pin_entry_evt = NULL;
+					}
+				}
 				else if (i->get_value() != _("OK"))
 				{
 					if (pin_code.size() < 8)
@@ -230,4 +244,12 @@ bool pivacy_ui_pin_dialog::on_mouse(wxMouseEvent& event)
 	}
 	
 	return rv;
+}
+
+void pivacy_ui_pin_dialog::handle_pin_entry(pivacy_ui_event& evt)
+{
+	pin_entry_evt = (pivacy_ui_event*) evt.Clone();
+	handling_event = true;
+	
+	pin_code.clear();
 }

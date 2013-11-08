@@ -41,6 +41,7 @@
 
 #include "pivacy_ui_canvas.h"
 #include <string>
+#include <vector>
 #include <list>
 
 class pivacy_ui_consent_dialog : public pivacy_ui_ux_base
@@ -69,21 +70,28 @@ public:
 	 * @param rp the name of the relying party
 	 * @param attr a list of the attributes requested by the RP
 	 */
-	void set_rp_and_attr(wxString rp, std::list<wxString> attr);
+	void set_rp_and_attr(wxString rp, std::vector<wxString> attr);
 	
 	/**
 	 * Should the "ALWAYS" button be shown?
 	 * @param show_always set to true if the "ALWAYS" button should be shown
 	 */
 	void set_show_always(bool show_always);
+	
+	/**
+	 * Handle a consent request through the Pivacy UI API
+	 * @param evt the event
+	 */
+	void handle_consent_event(pivacy_ui_event& evt);
 
 private:
 	wxString rp;
-	std::list<wxString> attr;
-	bool areas_set;
+	std::vector<wxString> attr;
 	std::list<pivacy_ui_area> areas;
 	wxString pressed;
 	bool show_always;
+	bool handling_event;
+	pivacy_ui_event* consent_evt;
 };
 
 #endif // !_PIVACY_UI_CONSENT_H

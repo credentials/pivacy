@@ -39,6 +39,9 @@
 #include "wx/wx.h" 
 #endif // WX_PRECOMP
 #include <vector>
+#include <string>
+
+class pivacy_ui_event;
 
 class pivacy_ui_comm_thread : public wxThread
 {
@@ -63,12 +66,6 @@ public:
 	 * Stop the thread
 	 */
 	void stop();
-	
-	/**
-	 * Drop the client connection and restore the default UI state
-	 * @param socket_fd the client socket to close
-	 */
-	void drop_client(int& socket_fd);
 
 private:
 	/**
@@ -86,6 +83,26 @@ private:
 	 * @return true if the data was sent successfully, false otherwise
 	 */
 	bool send_to_client(int client_socket, std::vector<unsigned char>& tx);
+	
+	/**
+	 * Drop the client connection and restore the default UI state
+	 * @param socket_fd the client socket to close
+	 */
+	void drop_client(int& socket_fd);
+	
+	/**
+	 * Send the specified event to the main UI thread and wait for it to
+	 * be handled
+	 * @param evt the event to send
+	 */
+	void send_event_and_wait(pivacy_ui_event& evt);
+	
+	/**
+	 * Retrieve a fixed length string from a byte array
+	 * @param vec vector to retrieve the string from; the vector is altered
+	 * @return the frontmost string in the byte array
+	 */
+	std::string string_from_vector(std::vector<unsigned char>& vec);
 
 	// Should the thread be running
 	bool should_run;

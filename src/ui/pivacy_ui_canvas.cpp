@@ -119,17 +119,27 @@ pivacy_ui_event::pivacy_ui_event()
 {
 	wait_mutex = NULL;
 	wait_cond = NULL;
+	evt_data = NULL;
+	show_always = false;
 	type = 0;
 }
 
-pivacy_ui_event::pivacy_ui_event(wxMutex* wait_mutex, wxCondition* wait_cond, int type, wxWindow* win /* = NULL */)
+pivacy_ui_event::pivacy_ui_event(int type, pivacy_ui_event_data* evt_data /* = NULL */, wxWindow* win /* = NULL */)
 {
-	this->wait_mutex = wait_mutex;
-	this->wait_cond = wait_cond;
+	this->wait_mutex = NULL;
+	this->wait_cond = NULL;
 	this->type = type;
+	this->evt_data = evt_data;
+	show_always = false;
 	
 	SetEventType(pvEVT_PIVACYEVENT);
 	SetEventObject(win);
+}
+
+void pivacy_ui_event::set_mutex_and_cond(wxMutex* wait_mutex, wxCondition* wait_cond)
+{
+	this->wait_mutex = wait_mutex;
+	this->wait_cond = wait_cond;
 }
 	
 void pivacy_ui_event::set_show_status(int status)
@@ -141,10 +151,23 @@ int pivacy_ui_event::get_show_status()
 {
 	return show_status;
 }
+
+void pivacy_ui_event::set_show_message(std::string& msg)
+{
+	this->msg = wxString(msg.c_str(), wxConvUTF8);
+}
+	
+wxString pivacy_ui_event::get_show_message()
+{
+	return msg;
+}
 	
 void pivacy_ui_event::set_pin(std::string PIN)
 {
-	this->PIN = PIN;
+	if (evt_data != NULL)
+	{
+		evt_data->PIN = PIN;
+	}
 }
 
 void pivacy_ui_event::set_rp_name(wxString& rp_name)
@@ -167,19 +190,46 @@ std::vector<wxString> pivacy_ui_event::get_rp_attributes()
 	return rp_attributes;
 }
 
+void pivacy_ui_event::set_show_always(bool show_always)
+{
+	this->show_always = show_always;
+}
+	
+bool pivacy_ui_event::get_show_always()
+{
+	return show_always;
+}
+
 void pivacy_ui_event::set_consent_result(int consent_result)
 {
-	this->consent_result = consent_result;
+	if (evt_data != NULL)
+	{
+		evt_data->consent_result = consent_result;
+	}
 }
 	
 std::string pivacy_ui_event::get_pin()
 {
-	return PIN;
+	if (evt_data != NULL)
+	{
+		return evt_data->PIN;
+	}
+	else
+	{
+		return std::string("");
+	}
 }
 	
 int pivacy_ui_event::get_consent_result()
 {
-	return consent_result;
+	if (evt_data != NULL)
+	{
+		return evt_data->consent_result;
+	}
+	else
+	{
+		return -1;
+	}
 }
 
 int pivacy_ui_event::get_type()
@@ -189,9 +239,12 @@ int pivacy_ui_event::get_type()
 
 void pivacy_ui_event::signal_handled()
 {
-	wxMutexLocker lock(*wait_mutex);
-	
-	wait_cond->Broadcast();
+	if ((wait_mutex != NULL) && (wait_cond != NULL))
+	{
+		wxMutexLocker lock(*wait_mutex);
+		
+		wait_cond->Broadcast();
+	}
 }
 	
 wxEvent* pivacy_ui_event::Clone() const
@@ -364,6 +417,15 @@ void pivacy_ui_canvas::on_quit(wxCommandEvent& event)
 
 void pivacy_ui_canvas::on_fullscreen(wxCommandEvent& event)
 {
+	if (!IsFullScreen())
+	{
+		INFO_MSG("Switching to full screen mode");
+	}
+	else
+	{
+		INFO_MSG("Leaving full screen mode");
+	}
+	
 	ShowFullScreen(!IsFullScreen());
 }
 
@@ -410,9 +472,25 @@ void pivacy_ui_canvas::on_pivacy_ui_evt(pivacy_ui_event& event)
 	case PEVT_SHOWSTATUS:
 		status_dialog->set_status(event.get_show_status());
 		this->set_ux_handler(status_dialog);
+		event.signal_handled();
 		break;
 	case PEVT_NOCLIENT:
+		this->set_status(_("Waiting for Pivacy system..."));
 		this->set_ux_handler(&blank_ux_handler);
+		event.signal_handled();
+		break;
+	case PEVT_SHOWMSG:
+		this->set_status(event.get_show_message());
+		this->set_ux_handler(&blank_ux_handler);
+		event.signal_handled();
+		break;
+	case PEVT_REQUESTPIN:
+		pin_dialog->handle_pin_entry(event);
+		this->set_ux_handler(pin_dialog);
+		break;
+	case PEVT_REQUESTCONSENT:
+		consent_dialog->handle_consent_event(event);
+		this->set_ux_handler(consent_dialog);
 		break;
 	default:
 		ERROR_MSG("Unhandled pivacy_ui_event of type %d", event.get_type());
@@ -420,6 +498,4 @@ void pivacy_ui_canvas::on_pivacy_ui_evt(pivacy_ui_event& event)
 	}
 	
 	this->Refresh();
-	
-	event.signal_handled();
 }

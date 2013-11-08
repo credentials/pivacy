@@ -281,7 +281,7 @@ pivacy_rv pivacy_ui_disconnect(void)
 	return PRV_OK;
 }
 
-pivacy_rv pivacy_ui_transceive(std::vector<unsigned char>& cmd, std::vector<unsigned char>& resp)
+pivacy_rv pivacy_ui_transceive(std::vector<unsigned char>& cmd, std::vector<unsigned char>& resp, bool expectOK = true)
 {
 	if (!pivacy_ui_lib_connected || (pivacy_ui_socket < 0))
 	{
@@ -306,6 +306,11 @@ pivacy_rv pivacy_ui_transceive(std::vector<unsigned char>& cmd, std::vector<unsi
 		return PRV_DISCONNECTED;
 	}
 	
+	if ((resp.size() < 1) || (resp[0] != PIVACY_OK))
+	{
+		return PRV_PROTO_ERROR;
+	}
+	
 	return PRV_OK;
 }
 
@@ -317,37 +322,115 @@ pivacy_rv pivacy_ui_show_status(unsigned char status)
 	show_status_cmd.push_back(SHOW_STATUS);
 	show_status_cmd.push_back(status);
 	
-	pivacy_rv rv;
-	
-	if ((rv = pivacy_ui_transceive(show_status_cmd, show_status_resp)) != PRV_OK)
-	{
-		return rv;
-	}
-	
-	if ((show_status_resp.size() < 1) || (show_status_resp[0] != PIVACY_OK))
-	{
-		return PRV_PROTO_ERROR;
-	}
-	
-	return PRV_OK;
+	return pivacy_ui_transceive(show_status_cmd, show_status_resp);
 }
 
 pivacy_rv pivacy_ui_request_pin(char* pin_buffer, size_t* pin_len)
 {
-	if (!pivacy_ui_lib_connected || (pivacy_ui_socket < 0))
+	if ((pin_buffer == NULL) || (pin_len == NULL))
 	{
-		return PRV_NOT_CONNECTED;
+		return PRV_PARAM_INVALID;
 	}
+	
+	std::vector<unsigned char> request_pin_cmd;
+	std::vector<unsigned char> request_pin_rsp;
+	
+	request_pin_cmd.push_back(REQUEST_PIN);
+	
+	pivacy_rv rv;
+	
+	if ((rv = pivacy_ui_transceive(request_pin_cmd, request_pin_rsp)) != PRV_OK)
+	{
+		return rv;
+	}
+	
+	if (*pin_len < (request_pin_rsp.size() - 1))
+	{
+		return PRV_BUFFER_TOO_SMALL;
+	}
+	
+	*pin_len = request_pin_rsp.size() - 1;
+	memcpy(pin_buffer, &request_pin_rsp[1], request_pin_rsp.size() - 1);
 	
 	return PRV_OK;
 }
 
+// WARNING: strlen(str) must be less than 256
+void append_string_to_vector(std::vector<unsigned char>& vec, const char* str)
+{
+	vec.push_back((unsigned char) strlen(str));
+	vec.resize(vec.size() + strlen(str));
+	memcpy(&vec[vec.size() - strlen(str)], str, strlen(str));
+}
+
 pivacy_rv pivacy_ui_consent(const char* rp_name, const char** attributes, size_t num_attrs, int show_always, int* consent_result)
 {
-	if (!pivacy_ui_lib_connected || (pivacy_ui_socket < 0))
+	if ((rp_name == NULL) || ((attributes == NULL) && (num_attrs != 0)) || (consent_result == NULL) || (strlen(rp_name) > 255))
 	{
-		return PRV_NOT_CONNECTED;
+		return PRV_PARAM_INVALID;
 	}
 	
+	// Check attribute name lengths
+	for (size_t i = 0; i < num_attrs; i++)
+	{
+		if (strlen(attributes[i]) > 255)
+		{
+			return PRV_PARAM_INVALID;
+		}
+	}
+	
+	std::vector<unsigned char> consent_cmd;
+	std::vector<unsigned char> consent_rsp;
+	
+	consent_cmd.push_back(REQUEST_CONSENT);
+	
+	if (show_always)
+	{
+		consent_cmd.push_back(0x1);
+	}
+	else
+	{
+		consent_cmd.push_back(0x0);
+	}
+	
+	append_string_to_vector(consent_cmd, rp_name);
+	
+	for (size_t i = 0; i < num_attrs; i++)
+	{
+		append_string_to_vector(consent_cmd, attributes[i]);
+	}
+	
+	pivacy_rv rv;
+	
+	if ((rv = pivacy_ui_transceive(consent_cmd, consent_rsp)) != PRV_OK)
+	{
+		return rv;
+	}
+	
+	if (consent_rsp.size() != 2)
+	{
+		return PRV_PROTO_ERROR;
+	}
+	
+	*consent_result = consent_rsp[1];
+	
 	return PRV_OK;
+}
+
+pivacy_rv pivacy_ui_message(const char* msg)
+{
+	if (msg == NULL)
+	{
+		return PRV_PARAM_INVALID;
+	}
+	
+	std::vector<unsigned char> show_msg_cmd;
+	std::vector<unsigned char> show_msg_rsp;
+	
+	show_msg_cmd.resize(strlen(msg) + 1);
+	
+	show_msg_cmd[0] = SHOW_MESSAGE;
+	memcpy(&show_msg_cmd[1], msg, strlen(msg));
+	
+	return pivacy_ui_transceive(show_msg_cmd, show_msg_rsp);
 }

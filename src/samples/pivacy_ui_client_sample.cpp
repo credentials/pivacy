@@ -69,6 +69,86 @@ int main(int argc, char* argv[])
 		sleep(1);
 	}
 	
+	/* Try the "show message" command */
+	if ((rv = pivacy_ui_message("Waiting for edna daemon to start...")) != PRV_OK)
+	{
+		fprintf(stderr, "Failed to send SHOW MESSAGE command (0x%08X)\n", (unsigned int) rv);
+		
+		return -1;
+	}
+	sleep(1);
+	
+	/* Try the "request PIN" command */
+	char pin[9] = { 0 };
+	size_t pin_len = 8;
+	
+	if ((rv = pivacy_ui_request_pin(pin, &pin_len)) != PRV_OK)
+	{
+		fprintf(stderr, "Failed to send REQUEST PIN command (0x%08X)\n", (unsigned int) rv);
+		
+		return -1;
+	}
+	
+	printf("User entered the following PIN: %s (%zd)\n", pin, pin_len);
+	
+	/* Try the "request consent" command */
+	const char* attrs[] =
+	{
+		"Over 18",
+		"Nationality"
+	};
+	int consent_result;
+	
+	if ((rv = pivacy_ui_consent("Coffeeshop Weedrook", attrs, 2, 1, &consent_result)) != PRV_OK)
+	{
+		fprintf(stderr, "Failed to send GET CONSENT command (0x%08X)\n", (unsigned int) rv);
+		
+		return -1;
+	}
+	
+	printf("User consent answer was: ");
+	
+	switch(consent_result)
+	{
+	case PIVACY_CONSENT_ONCE:
+		printf("ONCE\n");
+		break;
+	case PIVACY_CONSENT_ALWAYS:
+		printf("ALWAYS\n");
+		break;
+	case PIVACY_CONSENT_NO:
+		printf("REFUSE\n");
+		break;
+	default:
+		printf("UNKNOWN\n");
+		break;
+	}
+	
+	if ((rv = pivacy_ui_consent("Coffeeshop Weedrook", attrs, 2, 0, &consent_result)) != PRV_OK)
+	{
+		fprintf(stderr, "Failed to send GET CONSENT command (0x%08X)\n", (unsigned int) rv);
+		
+		return -1;
+	}
+	
+	printf("User consent answer was: ");
+	
+	switch(consent_result)
+	{
+	case PIVACY_CONSENT_ONCE:
+		printf("ONCE\n");
+		break;
+	case PIVACY_CONSENT_ALWAYS:
+		printf("ALWAYS\n");
+		break;
+	case PIVACY_CONSENT_NO:
+		printf("REFUSE\n");
+		break;
+	default:
+		printf("UNKNOWN\n");
+		break;
+	}
+	
 	/* Disconnect from the daemon */
 	pivacy_ui_disconnect();
 	

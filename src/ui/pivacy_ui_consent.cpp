@@ -33,13 +33,15 @@
 #include "config.h"
 #include "pivacy_ui_consent.h"
 #include "pivacy_ui_colours.h"
+#include "pivacy_ui_lib.h"
 #include <stdio.h>
 
 pivacy_ui_consent_dialog::pivacy_ui_consent_dialog()
 {
-	areas_set = false;
 	pressed = _("");
 	show_always = true;
+	handling_event = false;
+	consent_evt = NULL;
 }
 
 void pivacy_ui_consent_dialog::render(wxGCDC& dc)
@@ -60,7 +62,7 @@ void pivacy_ui_consent_dialog::render(wxGCDC& dc)
 
 	wxCoord row = 80 + 15 + 15;
 
-	for (std::list<wxString>::iterator i = attr.begin(); i != attr.end(); i++)
+	for (std::vector<wxString>::iterator i = attr.begin(); i != attr.end(); i++)
 	{
 		dc.DrawText(*i, 50, row);
 
@@ -147,14 +149,11 @@ void pivacy_ui_consent_dialog::render(wxGCDC& dc)
 	dc.DrawRoundedRectangle(refuse_x, button_y, refuse_width, 30, 5);
 	dc.DrawText(_("REFUSE"), refuse_x + 6, button_y + 6);
 
-	if (!areas_set)
-	{
-		areas.push_back(pivacy_ui_area(consent_x, button_y, consent_width, 30, _("CONSENT")));
-		areas.push_back(pivacy_ui_area(always_x, button_y, always_width, 30, _("ALWAYS")));
-		areas.push_back(pivacy_ui_area(refuse_x, button_y, refuse_width, 30, _("REFUSE")));
-	}
+	areas.clear();
 
-	areas_set = true;
+	areas.push_back(pivacy_ui_area(consent_x, button_y, consent_width, 30, _("CONSENT")));
+	if (show_always) areas.push_back(pivacy_ui_area(always_x, button_y, always_width, 30, _("ALWAYS")));
+	areas.push_back(pivacy_ui_area(refuse_x, button_y, refuse_width, 30, _("REFUSE")));
 }
 
 bool pivacy_ui_consent_dialog::on_mouse(wxMouseEvent& event)
@@ -170,14 +169,41 @@ bool pivacy_ui_consent_dialog::on_mouse(wxMouseEvent& event)
 				if (i->get_value() == _("CONSENT"))
 				{
 					pressed = _("CONSENT");
+					
+					if (handling_event)
+					{
+						handling_event = false;
+						
+						consent_evt->set_consent_result(PIVACY_CONSENT_ONCE);
+						consent_evt->signal_handled();
+						consent_evt = NULL;
+					}
 				}
 				else if (i->get_value() == _("ALWAYS"))
 				{
 					pressed = _("ALWAYS");
+					
+					if (handling_event)
+					{
+						handling_event = false;
+						
+						consent_evt->set_consent_result(PIVACY_CONSENT_ALWAYS);
+						consent_evt->signal_handled();
+						consent_evt = NULL;
+					}
 				}
 				else if (i->get_value() == _("REFUSE"))
 				{
 					pressed = _("REFUSE");
+					
+					if (handling_event)
+					{
+						handling_event = false;
+						
+						consent_evt->set_consent_result(PIVACY_CONSENT_NO);
+						consent_evt->signal_handled();
+						consent_evt = NULL;
+					}
 				}
 			}
 		}
@@ -194,7 +220,7 @@ bool pivacy_ui_consent_dialog::on_mouse(wxMouseEvent& event)
 	return rv;
 }
 
-void pivacy_ui_consent_dialog::set_rp_and_attr(wxString rp, std::list<wxString> attr)
+void pivacy_ui_consent_dialog::set_rp_and_attr(wxString rp, std::vector<wxString> attr)
 {
 	this->rp = rp;
 	this->attr = attr;
@@ -203,4 +229,14 @@ void pivacy_ui_consent_dialog::set_rp_and_attr(wxString rp, std::list<wxString> 
 void pivacy_ui_consent_dialog::set_show_always(bool show_always)
 {
 	this->show_always = show_always;
+}
+
+void pivacy_ui_consent_dialog::handle_consent_event(pivacy_ui_event& evt)
+{
+	consent_evt = (pivacy_ui_event*) evt.Clone();
+	
+	this->set_rp_and_attr(evt.get_rp_name(), evt.get_rp_attributes());
+	this->set_show_always(evt.get_show_always());
+	
+	handling_event = true;
 }

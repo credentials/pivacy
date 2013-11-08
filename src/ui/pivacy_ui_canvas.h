@@ -208,6 +208,15 @@ private:
 #define PEVT_REQUESTPIN				0x2
 #define PEVT_REQUESTCONSENT			0x3
 #define PEVT_NOCLIENT				0x4
+#define PEVT_SHOWMSG				0x5
+
+class pivacy_ui_event_data
+{
+public:
+	// Event return data
+	std::string PIN;
+	int consent_result;
+};
 
 class pivacy_ui_event : public wxEvent
 {
@@ -219,12 +228,17 @@ public:
 
 	/**
 	 * Constructor
-	 * @param wait_mutex mutex used to wait until the event has been handled by the main thread
-	 * @param wait_cond condition used to wait until the event has been handled by the main thread
 	 * @param type the event type
 	 * @param win the associated window
 	 */
-	pivacy_ui_event(wxMutex* wait_mutex, wxCondition* wait_cond, int type, wxWindow* win = NULL);
+	pivacy_ui_event(int type, pivacy_ui_event_data* evt_data = NULL, wxWindow* win = NULL);
+	
+	/**
+	 * Set the waiting mutex and condition
+	 * @param wait_mutex mutex used to wait until the event has been handled by the main thread
+	 * @param wait_cond condition used to wait until the event has been handled by the main thread
+	 */
+	void set_mutex_and_cond(wxMutex* wait_mutex, wxCondition* wait_cond);
 	
 	/**
 	 * Set the status to show (in case of PEVT_SHOWSTATUS event)
@@ -237,6 +251,18 @@ public:
 	 * @return the status to show
 	 */
 	int get_show_status();
+	
+	/**
+	 * Set the message to show (in case of PEVT_SHOWMESSAGE event)
+	 * @param msg the message to show
+	 */
+	void set_show_message(std::string& msg);
+	
+	/**
+	 * Get the message to show
+	 * @return the message to show
+	 */
+	wxString get_show_message();
 	
 	/**
 	 * Set the PIN
@@ -267,6 +293,18 @@ public:
 	 * @return the names of the attributes that the relying party is asking for
 	 */
 	std::vector<wxString> get_rp_attributes();
+	
+	/**
+	 * Set whether or not the "always" button should be shown in the consent dialog
+	 * @param show_always if set to true, the always button will be shown in the consent dialog
+	 */
+	void set_show_always(bool show_always);
+	
+	/**
+	 * Get whether or not the "always" button should be shown in the consent dialog
+	 * @return true if the "always" button should be shown
+	 */
+	bool get_show_always();
 	
 	/**
 	 * Set the consent result
@@ -310,12 +348,13 @@ private:
 
 	// Event input parameters
 	int show_status;
+	bool show_always;
 	wxString rp_name;
 	std::vector<wxString> rp_attributes;
+	wxString msg;
 	
 	// Event return data
-	std::string PIN;
-	int consent_result;
+	pivacy_ui_event_data* evt_data;
 	
 	// Condition used to wait for handling of the event
 	wxMutex* wait_mutex;

@@ -49,6 +49,7 @@
 #define SHOW_STATUS			0x03
 #define REQUEST_PIN			0x04
 #define REQUEST_CONSENT		0x05
+#define SHOW_MESSAGE		0x06
 
 /* API return values */
 #define PIVACY_OK			0x00

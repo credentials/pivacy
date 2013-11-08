@@ -63,12 +63,20 @@ public:
 	 * @return true if the parent window should be repainted
 	 */
 	virtual bool on_mouse(wxMouseEvent& event);
+	
+	/**
+	 * Handle PIN entry
+	 * @param evt the Pivacy UI event to signal when the user presses OK
+	 */
+	void handle_pin_entry(pivacy_ui_event& evt);
 
 private:
 	std::string pin_code;
 	bool areas_set;
 	std::list<pivacy_ui_area> areas;
 	wxString pressed;
+	pivacy_ui_event* pin_entry_evt;
+	bool handling_event;
 };
 
 #endif // !_PIVACY_UI_PINDIALOG_H

@@ -58,16 +58,31 @@ void pivacy_ui_comm_thread::drop_client(int& socket_fd)
 	
 	socket_fd = -1;
 	
-	wxMutex wait_mutex;
-	wxCondition wait_cond(wait_mutex);
+	pivacy_ui_event evt(PEVT_NOCLIENT);
+	send_event_and_wait(evt);
+}
+
+std::string pivacy_ui_comm_thread::string_from_vector(std::vector<unsigned char>& vec)
+{
+	if (vec.size() == 0)
+	{
+		return "";
+	}
 	
-	wait_mutex.Lock();
+	size_t len = vec[0];
 	
-	pivacy_ui_event evt(&wait_mutex, &wait_cond, PEVT_NOCLIENT);
+	if (vec.size() < (len + 1))
+	{
+		vec.clear();
+		return "";
+	}
 	
-	main_wnd->AddPendingEvent(evt);
+	std::string str = std::string((const char*) &vec[1], len);
 	
-	wait_cond.Wait();
+	memcpy(&vec[0], &vec[len + 1], vec.size() - len - 1);
+	vec.resize(vec.size() - len - 1);
+	
+	return str;
 }
 
 void* pivacy_ui_comm_thread::Entry()
@@ -270,17 +285,10 @@ void* pivacy_ui_comm_thread::Entry()
 					
 					DEBUG_MSG("Show status command for status %d", client_cmd[1]);
 						
-					wxMutex wait_mutex;
-					wxCondition wait_cond(wait_mutex);
-					
-					wait_mutex.Lock();
-					
-					pivacy_ui_event evt(&wait_mutex, &wait_cond, PEVT_SHOWSTATUS);
+					pivacy_ui_event evt(PEVT_SHOWSTATUS);
 					evt.set_show_status(client_cmd[1]);
 					
-					main_wnd->AddPendingEvent(evt);
-					
-					wait_cond.Wait();
+					send_event_and_wait(evt);
 					
 					std::vector<unsigned char> resp;
 					resp.push_back(PIVACY_OK);
@@ -294,9 +302,159 @@ void* pivacy_ui_comm_thread::Entry()
 						continue;
 					}
 				}
-				break;					
+				break;
+			case SHOW_MESSAGE:
+				{
+					if (client_cmd.size() < 2)
+					{
+						ERROR_MSG("Invalid \"SHOW MESSAGE\" command from client");
+						
+						std::vector<unsigned char> resp;
+						resp.push_back(PIVACY_UNKNOWN_CMD);
+						
+						if (!send_to_client(client_socket_fd, resp))
+						{
+							ERROR_MSG("Client communication error, closing client socket");
+							
+							drop_client(client_socket_fd);
+							
+							continue;
+						}
+					}
+					
+					std::string msg = std::string((const char*) &client_cmd[1], client_cmd.size() - 1);
+					
+					DEBUG_MSG("Request to display message \"%s\"", msg.c_str());
+					
+					pivacy_ui_event evt(PEVT_SHOWMSG);
+					evt.set_show_message(msg);
+					
+					send_event_and_wait(evt);
+					
+					std::vector<unsigned char> resp;
+					resp.push_back(PIVACY_OK);
+					
+					if (!send_to_client(client_socket_fd, resp))
+					{
+						ERROR_MSG("Client communication error, closing client socket");
+						
+						drop_client(client_socket_fd);
+						
+						continue;
+					}
+				}
+				break;
 			case REQUEST_PIN:
+				{
+					if (client_cmd.size() != 1)
+					{
+						ERROR_MSG("Invalid \"REQUEST PIN\" command from client");
+						
+						std::vector<unsigned char> resp;
+						resp.push_back(PIVACY_UNKNOWN_CMD);
+						
+						if (!send_to_client(client_socket_fd, resp))
+						{
+							ERROR_MSG("Client communication error, closing client socket");
+							
+							drop_client(client_socket_fd);
+							
+							continue;
+						}
+					}
+					
+					DEBUG_MSG("Request to enter PIN");
+					
+					pivacy_ui_event_data evt_data;
+					pivacy_ui_event evt(PEVT_REQUESTPIN, &evt_data);
+					
+					send_event_and_wait(evt);
+					
+					std::vector<unsigned char> resp;
+					resp.resize(evt.get_pin().size() + 1);
+					
+					resp[0] = PIVACY_OK;
+					memcpy(&resp[1], evt.get_pin().c_str(), evt.get_pin().size());
+					
+					if (!send_to_client(client_socket_fd, resp))
+					{
+						ERROR_MSG("Client communication error, closing client socket");
+						
+						drop_client(client_socket_fd);
+						
+						continue;
+					}
+				}
+				break;
 			case REQUEST_CONSENT:
+				{
+					DEBUG_MSG("Consent request");
+					
+					if (client_cmd.size() < 3)
+					{
+						ERROR_MSG("Invalid \"REQUEST CONSENT\" command from client");
+						
+						std::vector<unsigned char> resp;
+						resp.push_back(PIVACY_UNKNOWN_CMD);
+						
+						if (!send_to_client(client_socket_fd, resp))
+						{
+							ERROR_MSG("Client communication error, closing client socket");
+							
+							drop_client(client_socket_fd);
+							
+							continue;
+						}
+					}
+					
+					bool show_always = (client_cmd[1] == 1);
+					
+					DEBUG_MSG("The always button in the consent dialog should %sbe shown", show_always ? "" : "not ");
+					
+					memcpy(&client_cmd[0], &client_cmd[2], client_cmd.size() - 2);
+					client_cmd.resize(client_cmd.size() - 1);
+					
+					std::string rp_name = string_from_vector(client_cmd);
+					
+					DEBUG_MSG("Relying party asking consent: %s", rp_name.c_str());
+					
+					wxString wx_rp_name = wxString(rp_name.c_str(), wxConvUTF8);
+					
+					std::vector<wxString> rp_attr;
+					
+					while (client_cmd.size() > 0)
+					{
+						std::string attr_name = string_from_vector(client_cmd);
+						
+						rp_attr.push_back(wxString(attr_name.c_str(), wxConvUTF8));
+						
+						DEBUG_MSG("Adding attribute %s to consent request", attr_name.c_str());
+					}
+					
+					pivacy_ui_event_data evt_data;
+					pivacy_ui_event evt(PEVT_REQUESTCONSENT, &evt_data);
+					
+					evt.set_rp_name(wx_rp_name);
+					evt.set_rp_attributes(rp_attr);
+					evt.set_show_always(show_always);
+					
+					send_event_and_wait(evt);
+					
+					std::vector<unsigned char> resp;
+					
+					resp.push_back(PIVACY_OK);
+					resp.push_back((unsigned char) evt.get_consent_result());
+					
+					if (!send_to_client(client_socket_fd, resp))
+					{
+						ERROR_MSG("Client communication error, closing client socket");
+						
+						drop_client(client_socket_fd);
+						
+						continue;
+					}
+				}
+				break;
 			default:
 				{
 					ERROR_MSG("Client sent unknown command %02X", client_cmd[0]);
@@ -325,6 +483,20 @@ void* pivacy_ui_comm_thread::Entry()
 	DEBUG_MSG("Exiting communications thread");
 	
 	return 0;
+}
+
+void pivacy_ui_comm_thread::send_event_and_wait(pivacy_ui_event& evt)
+{
+	wxMutex wait_mutex;
+	wxCondition wait_cond(wait_mutex);
+	
+	wait_mutex.Lock();
+	
+	evt.set_mutex_and_cond(&wait_mutex, &wait_cond);
+	
+	main_wnd->AddPendingEvent(evt);
+	
+	wait_cond.Wait();
 }
 
 bool pivacy_ui_comm_thread::recv_from_client(int client_socket, std::vector<unsigned char>& rx)
