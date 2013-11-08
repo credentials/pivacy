@@ -416,7 +416,7 @@ void* pivacy_ui_comm_thread::Entry()
 					DEBUG_MSG("The always button in the consent dialog should %sbe shown", show_always ? "" : "not ");
 					
 					memcpy(&client_cmd[0], &client_cmd[2], client_cmd.size() - 2);
-					client_cmd.resize(client_cmd.size() - 1);
+					client_cmd.resize(client_cmd.size() - 2);
 					
 					std::string rp_name = string_from_vector(client_cmd);
 					

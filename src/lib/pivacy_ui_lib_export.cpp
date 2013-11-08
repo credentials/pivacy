@@ -359,8 +359,9 @@ pivacy_rv pivacy_ui_request_pin(char* pin_buffer, size_t* pin_len)
 void append_string_to_vector(std::vector<unsigned char>& vec, const char* str)
 {
 	vec.push_back((unsigned char) strlen(str));
+	size_t pos = vec.size();
 	vec.resize(vec.size() + strlen(str));
-	memcpy(&vec[vec.size() - strlen(str)], str, strlen(str));
+	memcpy(&vec[pos], str, strlen(str));
 }
 
 pivacy_rv pivacy_ui_consent(const char* rp_name, const char** attributes, size_t num_attrs, int show_always, int* consent_result)

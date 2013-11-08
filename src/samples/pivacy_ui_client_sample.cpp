@@ -95,11 +95,12 @@ int main(int argc, char* argv[])
 	const char* attrs[] =
 	{
 		"Over 18",
-		"Nationality"
+		"Nationality",
+		"Under 50"
 	};
 	int consent_result;
 	
-	if ((rv = pivacy_ui_consent("Coffeeshop Weedrook", attrs, 2, 1, &consent_result)) != PRV_OK)
+	if ((rv = pivacy_ui_consent("Coffeeshop Weedrook", attrs, 3, 1, &consent_result)) != PRV_OK)
 	{
 		fprintf(stderr, "Failed to send GET CONSENT command (0x%08X)\n", (unsigned int) rv);
 		
