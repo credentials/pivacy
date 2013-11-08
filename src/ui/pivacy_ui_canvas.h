@@ -448,6 +448,9 @@ private:
 	pivacy_ui_pin_dialog* pin_dialog;
 	pivacy_ui_consent_dialog* consent_dialog;
 	pivacy_ui_status_dialog* status_dialog;
+
+	// Mouse
+	bool hide_mouse;
 };
 
 #endif // !_PIVACY_UI_CANVAS_H

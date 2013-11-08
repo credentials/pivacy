@@ -390,6 +390,8 @@ pivacy_ui_canvas::pivacy_ui_canvas(const wxSize& size) :
 	comm_thread = new pivacy_ui_comm_thread(this);
 	
 	comm_thread->start();
+
+	pivacy_conf_get_bool("ui", "hide_mouse", hide_mouse, false);
 }
 
 pivacy_ui_canvas::~pivacy_ui_canvas()
@@ -422,26 +424,11 @@ void pivacy_ui_canvas::on_fullscreen(wxCommandEvent& event)
 	{
 		INFO_MSG("Switching to full screen mode");
 
-		bool hide_mouse = false;
-
-		pivacy_conf_get_bool("ui", "hide_mouse", hide_mouse, false);
-
-		if (hide_mouse)
-		{
-			SetCursor(wxCursor(wxCURSOR_BLANK));
-		}
-		else
-		{
-			SetCursor(wxNullCursor);
-		}
-
 		ShowFullScreen(true);
 	}
 	else
 	{
 		INFO_MSG("Leaving full screen mode");
-
-		SetCursor(wxNullCursor);
 
 		ShowFullScreen(false);
 	}
@@ -469,10 +456,18 @@ void pivacy_ui_canvas::set_ux_handler(pivacy_ui_ux_base* ux_handler)
 	{
 		ui_panel->set_ux_handler(ux_handler);
 	}
+
+	if (hide_mouse)
+	{
+		this->SetCursor(wxCURSOR_BLANK);
+		ui_panel->SetCursor(wxCURSOR_BLANK);
+	}
 }
 
 void pivacy_ui_canvas::to_fullscreen()
 {
+	INFO_MSG("Switching to full screen mode");
+
 	ShowFullScreen(true);
 }
 

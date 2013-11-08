@@ -80,14 +80,18 @@ std::string pivacy_ui_comm_thread::string_from_vector(std::vector<unsigned char>
 	std::string str = std::string((const char*) &vec[1], len);
 	
 	memcpy(&vec[0], &vec[len + 1], vec.size() - len - 1);
-	vec.resize(vec.size() - len - 1);
-	
+	vec.resize(vec.size() - (len + 1));
+
 	return str;
 }
 
 void* pivacy_ui_comm_thread::Entry()
 {
 	DEBUG_MSG("Entering communications thread");
+
+	/* Clear display */
+	pivacy_ui_event clean_evt(PEVT_NOCLIENT);
+	send_event_and_wait(clean_evt);
 	
 	/* Clean up lingering old socket */
 	unlink(PIVACY_UI_SOCKET);
