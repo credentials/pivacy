@@ -37,6 +37,7 @@
 #include "pivacy_ui_status.h"
 #include "pivacy_ui_consent.h"
 #include "pivacy_ui_pindialog.h"
+#include "pivacy_config.h"
 #include <wx/mstream.h>
 #include <wx/dcbuffer.h>
 
@@ -420,13 +421,30 @@ void pivacy_ui_canvas::on_fullscreen(wxCommandEvent& event)
 	if (!IsFullScreen())
 	{
 		INFO_MSG("Switching to full screen mode");
+
+		bool hide_mouse = false;
+
+		pivacy_conf_get_bool("ui", "hide_mouse", hide_mouse, false);
+
+		if (hide_mouse)
+		{
+			SetCursor(wxCursor(wxCURSOR_BLANK));
+		}
+		else
+		{
+			SetCursor(wxNullCursor);
+		}
+
+		ShowFullScreen(true);
 	}
 	else
 	{
 		INFO_MSG("Leaving full screen mode");
+
+		SetCursor(wxNullCursor);
+
+		ShowFullScreen(false);
 	}
-	
-	ShowFullScreen(!IsFullScreen());
 }
 
 void pivacy_ui_canvas::on_paint(wxPaintEvent& event)
