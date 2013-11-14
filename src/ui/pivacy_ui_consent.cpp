@@ -235,6 +235,7 @@ void pivacy_ui_consent_dialog::handle_consent_event(pivacy_ui_event& evt)
 {
 	consent_evt = (pivacy_ui_event*) evt.Clone();
 	
+	pressed = _("");
 	this->set_rp_and_attr(evt.get_rp_name(), evt.get_rp_attributes());
 	this->set_show_always(evt.get_show_always());
 	

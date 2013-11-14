@@ -61,6 +61,16 @@ public:
 	 */
 	void process_apdu(bytestring& c_apdu, bytestring& r_apdu);
 	
+	/**
+	 * Handle power up events
+	 */
+	void power_up();
+	
+	/**
+	 * Handle power down events
+	 */
+	void power_down();
+	
 private:
 	/**
 	 * Reset the emulation state; called upon application selection
@@ -136,6 +146,11 @@ private:
 	bytestring admin_PIN;
 	bool user_PIN_verified;
 	bool admin_PIN_verified;
+	
+	/* UI state */
+	bool use_ui;
+	bool ui_optional;
+	bool ui_connected;
 };
 
 #endif // !_PIVACY_CARDEMU_EMULATOR_H

@@ -29,4 +29,5 @@ pivacy_cardemu_SOURCES =	pivacy_cardemu.cpp \
 pivacy_cardemu_LDADD =		@XML_LIBS@ \
 				@SILVIA_LIBS@ \
 				@EDNA_LIBS@ \
-				@LIBCONFIG_LIBS@
+				@LIBCONFIG_LIBS@ \
+				../lib/libpivacy_ui.la

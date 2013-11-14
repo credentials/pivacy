@@ -219,6 +219,22 @@ int process_apdu(const unsigned char* apdu_data, size_t apdu_len, unsigned char*
 	return 0;
 }
 
+void handle_power_up(void)
+{
+	if (emulator != NULL)
+	{
+		emulator->power_up();
+	}
+}
+
+void handle_power_down(void)
+{
+	if (emulator != NULL)
+	{
+		emulator->power_down();
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	// Program parameters
@@ -378,7 +394,7 @@ int main(int argc, char* argv[])
 			
 			INFO_MSG("Starting APDU command handling");
 			
-			rv = edna_lib_loop_and_process(&process_apdu);
+			rv = edna_lib_loop_and_process(&process_apdu, &handle_power_up, &handle_power_down);
 			
 			if (rv != ERV_OK)
 			{

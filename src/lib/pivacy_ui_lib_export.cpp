@@ -86,7 +86,7 @@ pivacy_rv pivacy_ui_lib_uninit(void)
 	return PRV_OK;
 }
 
-int send_to_daemon(const std::vector<unsigned char> tx)
+int pivacy_ui_send_to_daemon(const std::vector<unsigned char> tx)
 {
 	if (!pivacy_ui_lib_connected || (pivacy_ui_socket < 0))
 	{
@@ -129,7 +129,7 @@ int send_to_daemon(const std::vector<unsigned char> tx)
 	return 0;
 }
 
-int recv_from_daemon(std::vector<unsigned char>& rx)
+int pivacy_ui_recv_from_daemon(std::vector<unsigned char>& rx)
 {
 	if (!pivacy_ui_lib_connected || (pivacy_ui_socket < 0))
 	{
@@ -227,7 +227,7 @@ pivacy_rv pivacy_ui_connect(void)
 	std::vector<unsigned char> get_api_version;
 	get_api_version.push_back(GET_API_VERSION);
 	
-	if (send_to_daemon(get_api_version) != 0)
+	if (pivacy_ui_send_to_daemon(get_api_version) != 0)
 	{
 		close(pivacy_ui_socket);
 		
@@ -239,7 +239,7 @@ pivacy_rv pivacy_ui_connect(void)
 	
 	std::vector<unsigned char> api_version_info;
 	
-	if (recv_from_daemon(api_version_info) != 0)
+	if (pivacy_ui_recv_from_daemon(api_version_info) != 0)
 	{
 		close(pivacy_ui_socket);
 		
@@ -273,7 +273,7 @@ pivacy_rv pivacy_ui_disconnect(void)
 	std::vector<unsigned char> disconnect_cmd;
 	disconnect_cmd.push_back(DISCONNECT);
 	
-	send_to_daemon(disconnect_cmd);
+	pivacy_ui_send_to_daemon(disconnect_cmd);
 	
 	close(pivacy_ui_socket);
 	pivacy_ui_lib_connected = false;
@@ -288,7 +288,7 @@ pivacy_rv pivacy_ui_transceive(std::vector<unsigned char>& cmd, std::vector<unsi
 		return PRV_NOT_CONNECTED;
 	}
 	
-	if (send_to_daemon(cmd) != 0)
+	if (pivacy_ui_send_to_daemon(cmd) != 0)
 	{
 		close(pivacy_ui_socket);
 		pivacy_ui_socket = -1;
@@ -297,7 +297,7 @@ pivacy_rv pivacy_ui_transceive(std::vector<unsigned char>& cmd, std::vector<unsi
 		return PRV_DISCONNECTED;
 	}
 	
-	if (recv_from_daemon(resp) != 0)
+	if (pivacy_ui_recv_from_daemon(resp) != 0)
 	{
 		close(pivacy_ui_socket);
 		pivacy_ui_socket = -1;

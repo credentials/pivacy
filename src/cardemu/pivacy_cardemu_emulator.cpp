@@ -38,6 +38,7 @@
 #include "pivacy_cred_xml_rw.h"
 #include "silvia_parameters.h"
 #include "silvia_prover.h"
+#include "pivacy_ui_lib.h"
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
@@ -85,6 +86,8 @@
 
 pivacy_cardemu_emulator::pivacy_cardemu_emulator()
 {
+	pivacy_ui_lib_init();
+	
 	reset();
 	
 	/* Load credentials */
@@ -180,6 +183,21 @@ pivacy_cardemu_emulator::pivacy_cardemu_emulator()
 			}
 		}
 	}
+
+	ui_connected = false;
+	
+	pivacy_conf_get_bool("ui", "enable", use_ui, true);
+	pivacy_conf_get_bool("ui", "optional", ui_optional, false);
+	
+	INFO_MSG("The Pivacy UI is %s", use_ui ? "enabled" : "disabled");
+	INFO_MSG("Use of the Pivacy UI is %s", ui_optional ? "optional" : "mandatory");
+	
+	ui_connected = (pivacy_ui_connect() == PRV_OK);
+	
+	if (ui_connected)
+	{
+		pivacy_ui_show_status(PIVACY_STATE_WAIT);
+	}
 }
 	
 pivacy_cardemu_emulator::~pivacy_cardemu_emulator()
@@ -188,15 +206,33 @@ pivacy_cardemu_emulator::~pivacy_cardemu_emulator()
 	{
 		delete *i;
 	}
+	
+	pivacy_ui_lib_uninit();
 }
 
 void pivacy_cardemu_emulator::process_apdu(bytestring& c_apdu, bytestring& r_apdu)
 {
+	if (!ui_connected)
+	{
+		if ((pivacy_ui_connect() != PRV_OK) && !ui_optional)
+		{
+			ERROR_MSG("Not connected to the UI");
+			
+			r_apdu = SW_UNKNOWN_ERROR;
+			
+			return;
+		}
+		
+		INFO_MSG("Connected to the Pivacy UI");
+		
+		ui_connected = true;
+	}
+	
 	if (c_apdu.size() < 4)
 	{
 		ERROR_MSG("Malformed command APDU of %d bytes", c_apdu.size());
 		
-		r_apdu = "6f00";
+		r_apdu = SW_UNKNOWN_ERROR;
 		
 		return;
 	}
@@ -402,6 +438,7 @@ void pivacy_cardemu_emulator::process_prove_credential(bytestring& c_apdu, bytes
 			
 			/* Convert D to vector of booleans, start at "expiry" */
 			unsigned short D_mask = 0x0002;
+			std::vector<const char*> display_attributes;
 			
 			for (int i = 0; i < selected_credential->get_silvia_credential()->num_attributes(); i++)
 			{
@@ -410,6 +447,8 @@ void pivacy_cardemu_emulator::process_prove_credential(bytestring& c_apdu, bytes
 					curproof_D.push_back(true);
 					
 					INFO_MSG("Revealing attribute %s", selected_credential->get_attribute_names()[i].c_str());
+					
+					display_attributes.push_back(selected_credential->get_attribute_names()[i].c_str());
 				}
 				else
 				{
@@ -425,6 +464,30 @@ void pivacy_cardemu_emulator::process_prove_credential(bytestring& c_apdu, bytes
 				
 			proof_started = true;
 			proof_have_context_and_D = true;
+			
+			if (ui_connected)
+			{
+				int consent_result;
+				pivacy_rv rv;
+				
+				if (((rv = pivacy_ui_consent("This terminal", &display_attributes[0], display_attributes.size(), 0, &consent_result) != PRV_OK) ||
+				    ((rv = pivacy_ui_show_status(PIVACY_STATE_PRESENT)) != PRV_OK)) && !ui_optional)
+				{
+					reset_proof();
+					
+					r_apdu = SW_UNKNOWN_ERROR;
+				}
+				
+				if (rv == PRV_OK)
+				{
+					if (consent_result == PIVACY_CONSENT_NO)
+					{
+						reset_proof();
+						
+						r_apdu = SW_SECURITY_STATUS_NOT_SATISFIED;
+					}
+				}
+			}
 		}
 	}
 }
@@ -434,14 +497,17 @@ void pivacy_cardemu_emulator::process_prove_commitment(bytestring& c_apdu, bytes
 	if (!proof_started || !proof_have_context_and_D || (selected_credential == NULL))
 	{
 		r_apdu = SW_WRONG_STATE;
+		reset_proof();
 	}
 	else if ((c_apdu.size() < 5) || (c_apdu[OFS_LC] != (SYSPAR(l_statzk) / 8)))
 	{
 		r_apdu = SW_LENGTH_ERROR;
+		reset_proof();
 	}
 	else if ((c_apdu[OFS_P1] != 0x00) || (c_apdu[OFS_P2] != 0x00))
 	{
 		r_apdu = SW_DATA_UNKNOWN;
+		reset_proof();
 	}
 	else
 	{
@@ -499,10 +565,12 @@ void pivacy_cardemu_emulator::process_prove_signature(bytestring& c_apdu, bytest
 	if (c_apdu[OFS_P2] != 0x00)
 	{
 		r_apdu = SW_DATA_UNKNOWN;
+		reset_proof();
 	}
 	else if (!proof_proved)
 	{
 		r_apdu = SW_WRONG_STATE;
+		reset_proof();
 	}
 	else
 	{
@@ -522,6 +590,7 @@ void pivacy_cardemu_emulator::process_prove_signature(bytestring& c_apdu, bytest
 			break;
 		default:   // ????
 			r_apdu = SW_DATA_UNKNOWN;
+			reset_proof();
 			break;
 		}
 	}
@@ -532,18 +601,53 @@ void pivacy_cardemu_emulator::process_get_response(bytestring& c_apdu, bytestrin
 	if (c_apdu[OFS_P2] != 0x00)
 	{
 		r_apdu = SW_DATA_UNKNOWN;
+		
+		reset_proof();
 	}
 	else if (!proof_proved)
 	{
 		r_apdu = SW_WRONG_STATE;
+		
+		reset_proof();
 	}
 	else if (c_apdu[OFS_P1] > curproof_attributes.size() + 1)
 	{
 		r_apdu = SW_DATA_UNKNOWN;
+		
+		reset_proof();
 	}
 	else
 	{
 		r_apdu = curproof_attributes[c_apdu[OFS_P1]];
 		r_apdu += "9000";
+		
+		if (c_apdu[OFS_P1] == (curproof_attributes.size() - 1))
+		{
+			reset_proof();
+		}
+	}
+}
+
+void pivacy_cardemu_emulator::power_up()
+{
+	DEBUG_MSG("POWER UP received, resetting");
+	
+	reset();
+	
+	if (ui_connected)
+	{
+		pivacy_ui_show_status(PIVACY_STATE_PRESENT);
+	}
+}
+
+void pivacy_cardemu_emulator::power_down()
+{
+	DEBUG_MSG("POWER DOWN received, resetting");
+	
+	reset();
+	
+	if (ui_connected)
+	{
+		pivacy_ui_show_status(PIVACY_STATE_WAIT);
 	}
 }
